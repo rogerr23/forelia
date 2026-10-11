@@ -15,8 +15,9 @@ Aplicação de conciliação financeira que compara dados operacionais e contáb
 - Histórico de execuções e consultas paginadas.
 - Análise de divergências e observações imutáveis dos analistas.
 - Filtros de consulta por operação, resultado, datas e situação da análise.
+- API do dashboard com indicadores por conciliação e execuções recentes.
 
-Dashboard, exportação e frontend estão previstos para as próximas etapas.
+Tela do dashboard, exportação e frontend estão previstos para as próximas etapas.
 
 ## Desenvolvimento
 

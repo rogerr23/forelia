@@ -42,6 +42,8 @@ Os testes de análise verificam mudanças de situação e reabertura, preservaç
 
 Os testes dos filtros verificam igualdade exata de identificadores, combinação com E, datas de referência, limites inclusivos dos períodos, situação atual da análise, contagem antes da paginação, entradas inválidas e isolamento entre execuções.
 
+Os testes do dashboard verificam banco vazio, cenário base, correção sem soma entre execuções, reutilização, seleção de resultados históricos, contagem de tentativas por situação, limite de dez execuções recentes, resultados indisponíveis e preservação dos indicadores após mudanças na análise.
+
 Para outra instância de teste, configure `FORELIA_TEST_POSTGRES` com a conexão administrativa. Para executar somente os testes sem PostgreSQL:
 
 ```sh
@@ -106,7 +108,7 @@ A paginação começa em 1; tamanho padrão 20 e máximo 100. Arquivo inexistent
 
 O cenário `01_base` produz 9 itens: 4 pares conciliados, 3 pares divergentes e 2 registros sem correspondência, com taxa de 44,44%. Com `02_correcao/contabil_corrigido.csv`, os 8 pares ficam conciliados, com taxa de 100%.
 
-As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação no Rider. Dashboard, exportação e frontend permanecem para as próximas etapas.
+As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação e o dashboard no Rider. Tela do dashboard, exportação e frontend permanecem para as próximas etapas.
 
 ## Análise de divergências e observações
 
@@ -173,6 +175,31 @@ Os filtros são aplicados no PostgreSQL antes da contagem e da paginação. `tot
 
 Para deixar um filtro desativado, omita o parâmetro. Parâmetros vazios, identificador em branco ou com caractere nulo, valores fora das listas, datas inválidas e período invertido retornam 400 com `codigo: FILTRO_INVALIDO`. Resultado e situação devem usar os valores em maiúsculas apresentados na tabela. Os filtros abrangem somente os itens da execução indicada e não disponibilizam resultados de execuções não concluídas.
 
+## Dashboard — API
+
+```http
+GET /api/dashboard
+GET /api/dashboard?conciliacaoId=ID_DA_CONCILIACAO
+```
+
+Sem parâmetro, selecionar a conciliação `CONCLUIDA` mais recente pela data de criação, com desempate pelo ID em ordem crescente, como no histórico. Uma tentativa mais recente que esteja pendente, processando ou com falha não substitui o resultado concluído. O parâmetro permite consultar uma conciliação concluída anterior. ID inexistente retorna 404, ID malformado retorna 400 e execução não concluída retorna 409 com `codigo: RESULTADO_INDISPONIVEL`.
+
+A resposta contém:
+
+| Campo | Conteúdo |
+|---|---|
+| `execucoes` | `total`, `pendentes`, `processando`, `concluidas` e `falhas` de todo o histórico. Cada tentativa persistida conta uma vez; reutilizar uma execução não cria outra tentativa. |
+| `conciliacaoSelecionada` | Resumo da execução escolhida, ou `null` quando não existir uma execução concluída. |
+| `indicadores` | Registros de origem, itens, pares conciliados/divergentes, ausências nas duas fontes, `itensComDivergencia` e taxa da execução escolhida. |
+| `distribuicaoDivergencias` | Quatro categorias fixas, cada uma com `tipo` e `ocorrencias`: `VALOR`, `DATA`, `SEM_REGISTRO_CONTABIL` e `SEM_OPERACAO_FINANCEIRA`. |
+| `execucoesRecentes` | Até dez tentativas de todo o histórico, incluindo falhas, ordenadas pela criação mais recente, com desempate pelo ID crescente. |
+
+Os indicadores e a distribuição pertencem **somente à execução selecionada**. Não há soma de operações entre execuções, evitando duplicar operações reprocessadas. `itensComDivergencia` inclui pares divergentes e registros sem correspondência, contando cada item uma vez. A distribuição conta ocorrências: um par com diferença de valor e data contribui para ambas as categorias. Mudanças de análise não alteram esses indicadores.
+
+No cenário base: 16 registros de origem, 9 itens, 4 pares conciliados, 3 pares divergentes, uma ausência em cada fonte e 5 itens com divergência. A distribuição tem 2 ocorrências de valor, 2 de data e uma de cada ausência: 6 ocorrências, com taxa de 44,44%. A correção apresenta 8 itens conciliados e taxa de 100%, sem somar os 9 itens da execução anterior.
+
+Sem execução concluída, os indicadores e as quatro categorias retornam zero; as contagens de tentativas e o histórico continuam disponíveis. A seleção do dashboard não filtra esses dois campos globais. Nesta etapa, a API não oferece filtros por período e não há tela ou gráfico; o frontend deverá distinguir visualmente itens de ocorrências.
+
 ## Decisões de implementação
 
 Registro consolidado dos critérios confirmados nas etapas já implementadas. As seções deste guia detalham os contratos correspondentes. RN01–RN18 estão aprovadas, mas isso não aprova automaticamente os detalhes ainda não definidos de etapas futuras. A modelagem inicial em `docs/` continua sendo uma referência.
@@ -195,6 +222,10 @@ Registro consolidado dos critérios confirmados nas etapas já implementadas. As
 | Observações — RN11 | Texto obrigatório até 2.000 caracteres e analista obrigatório até 100; instante UTC do servidor. Identidade não autenticada. Permitir novas observações inclusive após `ANALISADA`; nunca editar ou excluir observações anteriores. |
 | Filtros — RN13 | Combinação com E, identificador exato, resultado/situação existentes, prioridade da data operacional com fallback contábil, período inclusivo e data exata combinável com período. Filtros inválidos retornam 400; nenhuma correspondência retorna lista vazia. |
 | Paginação — RN13 | Aplicar filtros antes de contar e paginar. Página a partir de 1, padrão 20 e máximo 100. Itens por identificador; histórico de execuções do mais recente para o mais antigo; observações da mais antiga para a mais recente, sempre com desempate por ID. |
+| Recorte do dashboard — RN15 | Autorizado pelo usuário em 11/10/2026 para implementação e revisão posterior. Indicadores e distribuição de uma única execução concluída, selecionada por ID ou pela criação mais recente, com desempate por ID crescente. Não somar operações entre execuções. |
+| Histórico do dashboard — RN15 | Contagens globais de tentativas por situação e dez tentativas mais recentes, incluindo falhas. Reutilização não aumenta a contagem. Selecionar outra conciliação não filtra esses campos. |
+| Distribuição do dashboard — RN14/RN15 | Contar ocorrências de valor, data e ausências separadamente. Total de itens com divergência inclui ausências e conta cada item uma vez; uma divergência dupla produz duas ocorrências. Preservar indicadores ao alterar a análise. |
+| Limites do dashboard — RN15 | Sem resultado concluído: seleção nula e indicadores zerados. ID inexistente 404, malformado 400 e não concluído 409. Implementar API e testes nesta etapa; tela/gráfico e filtros por período ficam para etapa futura. |
 
-Ao aprovar novos critérios, atualizar este registro e a seção do contrato afetado. Detalhes ainda em aberto do dashboard, da exportação e de outras etapas devem ser apresentados ao usuário antes de implementação.
+Ao aprovar novos critérios, atualizar este registro e a seção do contrato afetado. As decisões do dashboard podem ser revistas com o usuário a partir deste registro. Detalhes ainda em aberto dos filtros por período do dashboard, da exportação e de outras etapas devem ser apresentados ao usuário antes de implementação.
 

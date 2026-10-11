@@ -226,6 +226,41 @@ GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens?dataOperacao=2026-10-09
     });
 %}
 
+### Dashboard: selecionar automaticamente a conciliação concluída mais recente
+GET {{host}}/api/dashboard
+
+> {%
+    client.test("Dashboard com histórico e resultado concluído", function () {
+        client.assert(response.status === 200);
+        client.assert(response.body.conciliacaoSelecionada.status === "CONCLUIDA");
+        client.assert(response.body.execucoesRecentes.length <= 10);
+        client.assert(response.body.execucoes.total === response.body.execucoes.pendentes + response.body.execucoes.processando + response.body.execucoes.concluidas + response.body.execucoes.falhas);
+    });
+%}
+
+### Dashboard do cenário base: cinco itens com problemas, seis ocorrências
+GET {{host}}/api/dashboard?conciliacaoId={{conciliacaoId}}
+
+> {%
+    client.test("Dashboard sem duplicar itens com duas divergências", function () {
+        client.assert(response.status === 200);
+        client.assert(response.body.conciliacaoSelecionada.id === client.global.get("conciliacaoId"));
+        client.assert(response.body.indicadores.totalItens === 9);
+        client.assert(response.body.indicadores.itensComDivergencia === 5);
+        client.assert(response.body.indicadores.taxaConciliacao === 44.44);
+        client.assert(response.body.distribuicaoDivergencias.map(item => item.ocorrencias).join(",") === "2,2,1,1");
+    });
+%}
+
+### Dashboard com ID inexistente: retornar 404
+GET {{host}}/api/dashboard?conciliacaoId=00000000-0000-0000-0000-000000000000
+
+> {%
+    client.test("Dashboard rejeita execução inexistente", function () {
+        client.assert(response.status === 404);
+    });
+%}
+
 ### Período invertido: retornar 400
 GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens?dataInicial=2026-10-05&dataFinal=2026-10-03
 

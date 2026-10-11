@@ -1,4 +1,5 @@
 using Forelia.Api.Data;
+using Forelia.Api.Dashboard;
 using Forelia.Api.Health;
 using Forelia.Api.Imports;
 using Forelia.Api.Reconciliations;
@@ -36,6 +37,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 app.MapImportEndpoints();
 app.MapReconciliationEndpoints();
 app.MapAnalysisEndpoints();
+app.MapDashboardEndpoints();
 app.Run();
 
 public partial class Program;
