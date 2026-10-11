@@ -1,0 +1,4 @@
+id_operacao;data_operacao;valor
+OP001;2026-10-01;1500.00
+OP020;2026-10-02
+OP021;2026-10-03;99.00;COLUNA_EXTRA

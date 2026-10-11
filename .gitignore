@@ -1,0 +1,6 @@
+# Documentação local
+/docs/
+
+# Arquivos locais do sistema e do editor
+.DS_Store
+/.idea/
