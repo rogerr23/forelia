@@ -22,6 +22,40 @@ namespace Forelia.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Forelia.Api.Data.AnalystObservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Analyst")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ReconciliationItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReconciliationItemId", "CreatedAt", "Id");
+
+                    b.ToTable("observacao_analista", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_observacao_analista", "length(btrim(\"Analyst\")) > 0");
+
+                            t.HasCheckConstraint("ck_observacao_texto", "length(btrim(\"Text\")) > 0");
+                        });
+                });
+
             modelBuilder.Entity("Forelia.Api.Data.FinancialRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -210,6 +244,9 @@ namespace Forelia.Api.Data.Migrations
                     b.Property<Guid?>("AccountingRecordId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AnalysisStatus")
+                        .HasColumnType("text");
+
                     b.Property<bool>("DateDivergence")
                         .HasColumnType("boolean");
 
@@ -248,7 +285,18 @@ namespace Forelia.Api.Data.Migrations
                     b.ToTable("item_conciliacao", null, t =>
                         {
                             t.HasCheckConstraint("ck_item_resultado", "\"Result\" IN ('CONCILIADO', 'DIVERGENTE', 'SEM_REGISTRO_CONTABIL', 'SEM_OPERACAO_FINANCEIRA')");
+
+                            t.HasCheckConstraint("ck_item_situacao_analise", "(\"Result\" = 'CONCILIADO' AND \"AnalysisStatus\" IS NULL) OR (\"Result\" <> 'CONCILIADO' AND \"AnalysisStatus\" IS NOT NULL AND \"AnalysisStatus\" IN ('PENDENTE', 'EM_ANALISE', 'ANALISADA'))");
                         });
+                });
+
+            modelBuilder.Entity("Forelia.Api.Data.AnalystObservation", b =>
+                {
+                    b.HasOne("Forelia.Api.Data.ReconciliationItem", null)
+                        .WithMany()
+                        .HasForeignKey("ReconciliationItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Forelia.Api.Data.FinancialRecord", b =>

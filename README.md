@@ -13,8 +13,9 @@ Aplicação de conciliação financeira que compara dados operacionais e contáb
 - Importação e validação de CSVs.
 - Conciliação de valores e datas, com identificação de registros sem correspondência.
 - Histórico de execuções e consultas paginadas.
+- Análise de divergências e observações imutáveis dos analistas.
 
-Análise manual de divergências, observações, dashboard e exportação estão previstos para as próximas etapas.
+Filtros de negócio, dashboard e exportação estão previstos para as próximas etapas.
 
 ## Desenvolvimento
 

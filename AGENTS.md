@@ -5,7 +5,7 @@
 - Leia o `README.md` para conhecer o projeto e `docs/DESENVOLVIMENTO.md` para consultar execução, testes e contratos da API.
 - Consulte `docs/FORELIA_REQUISITOS_V1.md`, quando disponível. RN01–RN18 estão aprovadas, mas critérios ainda indefinidos precisam de decisão explícita antes de implementação.
 - A modelagem em `docs/` é uma proposta de referência. Não a trate como esquema obrigatório.
-- As decisões de importação e conciliação já implementadas estão descritas em `docs/DESENVOLVIMENTO.md`; não as reabra apenas porque os documentos iniciais ainda as apresentam como pendentes.
+- As decisões de importação, conciliação e análise já implementadas estão descritas em `docs/DESENVOLVIMENTO.md`; não as reabra apenas porque os documentos iniciais ainda as apresentam como pendentes.
 
 ## Implementação
 
@@ -14,6 +14,7 @@
 - Não crie documentos adicionais de planejamento sem solicitação.
 - Preserve a atomicidade das importações, os arquivos originais e a precisão dos valores financeiros. Correções chegam por novas importações.
 - Divergências financeiras e registros sem correspondência são resultados de negócio; não são falhas técnicas.
+- Alterar a situação de análise nunca muda o resultado financeiro. Observações são imutáveis; correções devem ser novas observações. Identificadores de analistas nesta V1 são identidades não autenticadas.
 - Não presuma chave de correspondência, cardinalidade ou tolerância de valor/data. Apresente a decisão necessária antes de implementar esses comportamentos.
 - Faça alterações de esquema com migrações do EF Core. Versione migrações, arquivos Designer e o ModelSnapshot.
 - Nunca inclua segredos reais ou dados financeiros reais nos exemplos e testes.

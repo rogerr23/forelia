@@ -35,6 +35,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 });
 app.MapImportEndpoints();
 app.MapReconciliationEndpoints();
+app.MapAnalysisEndpoints();
 app.Run();
 
 public partial class Program;

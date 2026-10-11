@@ -9,6 +9,7 @@ public sealed class ForeliaDbContext(DbContextOptions<ForeliaDbContext> options)
     public DbSet<FinancialRecord> FinancialRecords => Set<FinancialRecord>();
     public DbSet<Reconciliation> Reconciliations => Set<Reconciliation>();
     public DbSet<ReconciliationItem> ReconciliationItems => Set<ReconciliationItem>();
+    public DbSet<AnalystObservation> AnalystObservations => Set<AnalystObservation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -69,6 +70,9 @@ public sealed class ForeliaDbContext(DbContextOptions<ForeliaDbContext> options)
         item.ToTable("item_conciliacao", table =>
         {
             table.HasCheckConstraint("ck_item_resultado", "\"Result\" IN ('CONCILIADO', 'DIVERGENTE', 'SEM_REGISTRO_CONTABIL', 'SEM_OPERACAO_FINANCEIRA')");
+            table.HasCheckConstraint("ck_item_situacao_analise",
+                "(\"Result\" = 'CONCILIADO' AND \"AnalysisStatus\" IS NULL) OR " +
+                "(\"Result\" <> 'CONCILIADO' AND \"AnalysisStatus\" IS NOT NULL AND \"AnalysisStatus\" IN ('PENDENTE', 'EM_ANALISE', 'ANALISADA'))");
         });
         item.HasKey(x => x.Id);
         item.Property(x => x.ExternalId).IsRequired();
@@ -79,5 +83,17 @@ public sealed class ForeliaDbContext(DbContextOptions<ForeliaDbContext> options)
         item.HasOne<FinancialRecord>().WithMany().HasForeignKey(x => x.AccountingRecordId).OnDelete(DeleteBehavior.Restrict);
         execution.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.ReconciliationId).OnDelete(DeleteBehavior.Restrict);
         item.HasIndex(x => new { x.ReconciliationId, x.ExternalId }).IsUnique();
+
+        var observation = modelBuilder.Entity<AnalystObservation>();
+        observation.ToTable("observacao_analista", table =>
+        {
+            table.HasCheckConstraint("ck_observacao_texto", "length(btrim(\"Text\")) > 0");
+            table.HasCheckConstraint("ck_observacao_analista", "length(btrim(\"Analyst\")) > 0");
+        });
+        observation.HasKey(x => x.Id);
+        observation.Property(x => x.Text).HasMaxLength(2000).IsRequired();
+        observation.Property(x => x.Analyst).HasMaxLength(100).IsRequired();
+        observation.HasOne<ReconciliationItem>().WithMany().HasForeignKey(x => x.ReconciliationItemId).OnDelete(DeleteBehavior.Restrict);
+        observation.HasIndex(x => new { x.ReconciliationItemId, x.CreatedAt, x.Id });
     }
 }

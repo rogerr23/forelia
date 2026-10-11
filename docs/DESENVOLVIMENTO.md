@@ -38,7 +38,9 @@ dotnet test Forelia.sln
 
 Os testes usam os CSVs de `examples/csv/` e verificam normalização, erros intencionais, duplicidades, reimportação, limite de tamanho e rollback após falha técnica. A conciliação é verificada com cenários base, corrigido e normalizado, múltiplas divergências, precisão financeira, concorrência, reutilização de execuções, histórico, paginação e recuperação de tentativas interrompidas. Os testes PostgreSQL criam e removem um banco isolado `forelia_test_*`, sem gravar dados no banco `forelia`. É necessário usuário com permissão para criar banco (o usuário do Docker local atende).
 
-Para outra instância de teste, configure `FORELIA_TEST_POSTGRES` com a conexão administrativa. Para executar somente validação, sem PostgreSQL:
+Os testes de análise verificam mudanças de situação e reabertura, preservação financeira, observações após encerramento, limites de entrada, consultas paginadas, gravações simultâneas, bloqueio de edição/exclusão no banco e migração de dados existentes.
+
+Para outra instância de teste, configure `FORELIA_TEST_POSTGRES` com a conexão administrativa. Para executar somente os testes sem PostgreSQL:
 
 ```sh
 dotnet test Forelia.sln --filter 'Category!=Postgres'
@@ -102,5 +104,41 @@ A paginação começa em 1; tamanho padrão 20 e máximo 100. Arquivo inexistent
 
 O cenário `01_base` produz 9 itens: 4 pares conciliados, 3 pares divergentes e 2 registros sem correspondência, com taxa de 44,44%. Com `02_correcao/contabil_corrigido.csv`, os 8 pares ficam conciliados, com taxa de 100%.
 
-As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação no Rider. Análise manual, observações, filtros de negócio, dashboard e exportação permanecem para as próximas etapas.
+As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação no Rider. Filtros de negócio, dashboard e exportação permanecem para as próximas etapas.
+
+## Análise de divergências e observações
+
+Itens `DIVERGENTE`, `SEM_REGISTRO_CONTABIL` e `SEM_OPERACAO_FINANCEIRA` começam com `situacaoAnalise: PENDENTE`. Itens `CONCILIADO` retornam `situacaoAnalise: null` e não aceitam análise ou observações (409).
+
+A situação pode mudar livremente entre `PENDENTE`, `EM_ANALISE` e `ANALISADA`, inclusive reabrir uma análise. Repetir a mesma situação é permitido. Essa alteração não muda valores, datas, divergências, resultado financeiro ou totais da execução. Cada nova conciliação começa com sua própria análise; reutilizar uma execução concluída preserva a situação e as observações existentes.
+
+```http
+PATCH /api/conciliacoes/{conciliacaoId}/itens/{itemId}/analise
+Content-Type: application/json
+
+{"situacao": "EM_ANALISE"}
+```
+
+Para adicionar uma observação:
+
+```http
+POST /api/conciliacoes/{conciliacaoId}/itens/{itemId}/observacoes
+Content-Type: application/json
+
+{"texto": "Investigar diferença de valor e data.", "analista": "analista-teste"}
+```
+
+Texto e analista são obrigatórios, com limites de 2.000 e 100 caracteres, respectivamente. Campos em branco, acima do limite ou com caracteres nulos retornam 400. Espaços externos são removidos após a validação do limite. Data/hora é atribuída pelo servidor em UTC.
+
+A resposta 201 contém ID, item, texto, analista, data/hora, `identidadeAutenticada: false` e o aviso **Identidade não autenticada**. O identificador é informado pelo usuário, sem verificação de identidade nesta V1.
+
+Observações podem ser adicionadas em qualquer situação da análise, inclusive `ANALISADA`. Cada chamada cria uma nova observação. Correções devem ser feitas por uma nova observação; não há endpoints de edição ou exclusão. Um trigger no PostgreSQL também rejeita UPDATE e DELETE de observações.
+
+Consultas:
+
+- `GET /api/conciliacoes/{conciliacaoId}/itens/{itemId}`: item com sua situação atual.
+- `GET /api/conciliacoes/{conciliacaoId}/itens/{itemId}/observacoes?pagina=1&tamanhoPagina=20`: observações da mais antiga para a mais recente, com desempate pelo ID. Mesmos limites de paginação das demais consultas.
+- `GET /api/conciliacoes/{conciliacaoId}/itens/{itemId}/observacoes/{observacaoId}`: uma observação.
+
+IDs inexistentes ou pertencentes a outra execução/item retornam 404. Execuções não concluídas não disponibilizam análise ou observações (409). A migração inicializa a análise das divergências existentes como `PENDENTE`, preservando os resultados anteriores.
 

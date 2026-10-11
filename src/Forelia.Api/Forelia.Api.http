@@ -80,6 +80,13 @@ GET {{host}}/api/conciliacoes/{{conciliacaoId}}
 ### Itens da conciliação base, incluindo divergências de valor e data
 GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens?pagina=1&tamanhoPagina=20
 
+> {%
+    if (response.status === 200) {
+        const item = response.body.itens.find(item => item.idOperacao === "OP004");
+        client.global.set("itemAnaliseId", item.id);
+    }
+%}
+
 ### Histórico de execuções
 GET {{host}}/api/conciliacoes?pagina=1&tamanhoPagina=20
 
@@ -118,3 +125,56 @@ Content-Type: application/json
         });
     }
 %}
+
+### Iniciar ou reabrir a análise de OP004 sem alterar a divergência financeira
+PATCH {{host}}/api/conciliacoes/{{conciliacaoId}}/itens/{{itemAnaliseId}}/analise
+Content-Type: application/json
+
+{"situacao": "EM_ANALISE"}
+
+> {%
+    client.test("Situação alterada; resultado financeiro preservado", function () {
+        client.assert(response.status === 200);
+        client.assert(response.body.situacaoAnalise === "EM_ANALISE");
+        client.assert(response.body.resultado === "DIVERGENTE");
+        client.assert(response.body.divergencias.length === 2);
+    });
+%}
+
+### Adicionar observação (cada execução desta requisição cria uma nova observação)
+POST {{host}}/api/conciliacoes/{{conciliacaoId}}/itens/{{itemAnaliseId}}/observacoes
+Content-Type: application/json
+
+{"texto": "Investigar diferença de valor e data no exemplo OP004.", "analista": "analista-teste"}
+
+> {%
+    client.test("Observação criada com identidade não autenticada", function () {
+        client.assert(response.status === 201);
+        client.assert(response.body.identidadeAutenticada === false);
+        client.assert(response.body.avisoIdentidade === "Identidade não autenticada");
+    });
+    if (response.status === 201) client.global.set("observacaoId", response.body.id);
+%}
+
+### Concluir a investigação; OP004 continua financeiramente divergente
+PATCH {{host}}/api/conciliacoes/{{conciliacaoId}}/itens/{{itemAnaliseId}}/analise
+Content-Type: application/json
+
+{"situacao": "ANALISADA"}
+
+> {%
+    client.test("Análise concluída sem transformar o resultado em conciliado", function () {
+        client.assert(response.status === 200);
+        client.assert(response.body.situacaoAnalise === "ANALISADA");
+        client.assert(response.body.resultado === "DIVERGENTE");
+    });
+%}
+
+### Consultar o item e sua situação de análise
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens/{{itemAnaliseId}}
+
+### Histórico das observações, da mais antiga para a mais recente
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens/{{itemAnaliseId}}/observacoes?pagina=1&tamanhoPagina=20
+
+### Consultar a observação criada
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens/{{itemAnaliseId}}/observacoes/{{observacaoId}}

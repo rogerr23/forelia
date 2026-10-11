@@ -16,13 +16,13 @@ public sealed record ReconciliationResponse(Guid Id, Guid ArquivoOperacionalId, 
 
 public sealed record ReconciliationItemResponse(Guid Id, string IdOperacao, Guid? RegistroOperacionalId,
     Guid? RegistroContabilId, decimal? ValorOperacional, decimal? ValorContabil,
-    DateOnly? DataOperacional, DateOnly? DataContabil, string Resultado, string[] Divergencias)
+    DateOnly? DataOperacional, DateOnly? DataContabil, string Resultado, string[] Divergencias, string? SituacaoAnalise)
 {
     public static ReconciliationItemResponse From(ReconciliationItem x) => new(x.Id, x.ExternalId,
         x.OperationalRecordId, x.AccountingRecordId, x.OperationalAmount, x.AccountingAmount,
         x.OperationalDate, x.AccountingDate, x.Result,
         new[] { x.ValueDivergence ? "VALOR" : null, x.DateDivergence ? "DATA" : null }
-            .OfType<string>().ToArray());
+            .OfType<string>().ToArray(), x.AnalysisStatus);
 }
 
 public sealed record ReconciliationOutcome(int StatusCode, ReconciliationResponse? Execution = null,

@@ -33,4 +33,14 @@ public sealed class ReconciliationItem
     public string Result { get; set; } = "";
     public bool ValueDivergence { get; set; }
     public bool DateDivergence { get; set; }
+    public string? AnalysisStatus { get; set; }
+}
+
+public sealed class AnalystObservation
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ReconciliationItemId { get; set; }
+    public string Text { get; set; } = "";
+    public string Analyst { get; set; } = "";
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

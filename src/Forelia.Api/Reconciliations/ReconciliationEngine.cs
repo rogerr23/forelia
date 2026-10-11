@@ -25,6 +25,7 @@ public static class ReconciliationEngine
                     OperationalAmount = op?.Amount, AccountingAmount = acc?.Amount,
                     OperationalDate = op?.OperationDate, AccountingDate = acc?.OperationDate,
                     ValueDivergence = valueDiff, DateDivergence = dateDiff,
+                    AnalysisStatus = op is null || acc is null || valueDiff || dateDiff ? "PENDENTE" : null,
                     Result = op is null ? "SEM_OPERACAO_FINANCEIRA" : acc is null ? "SEM_REGISTRO_CONTABIL"
                         : valueDiff || dateDiff ? "DIVERGENTE" : "CONCILIADO"
                 };
