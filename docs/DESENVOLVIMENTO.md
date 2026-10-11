@@ -40,6 +40,8 @@ Os testes usam os CSVs de `examples/csv/` e verificam normalização, erros inte
 
 Os testes de análise verificam mudanças de situação e reabertura, preservação financeira, observações após encerramento, limites de entrada, consultas paginadas, gravações simultâneas, bloqueio de edição/exclusão no banco e migração de dados existentes.
 
+Os testes dos filtros verificam igualdade exata de identificadores, combinação com E, datas de referência, limites inclusivos dos períodos, situação atual da análise, contagem antes da paginação, entradas inválidas e isolamento entre execuções.
+
 Para outra instância de teste, configure `FORELIA_TEST_POSTGRES` com a conexão administrativa. Para executar somente os testes sem PostgreSQL:
 
 ```sh
@@ -104,7 +106,7 @@ A paginação começa em 1; tamanho padrão 20 e máximo 100. Arquivo inexistent
 
 O cenário `01_base` produz 9 itens: 4 pares conciliados, 3 pares divergentes e 2 registros sem correspondência, com taxa de 44,44%. Com `02_correcao/contabil_corrigido.csv`, os 8 pares ficam conciliados, com taxa de 100%.
 
-As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação no Rider. Filtros de negócio, dashboard e exportação permanecem para as próximas etapas.
+As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação no Rider. Dashboard, exportação e frontend permanecem para as próximas etapas.
 
 ## Análise de divergências e observações
 
@@ -141,4 +143,58 @@ Consultas:
 - `GET /api/conciliacoes/{conciliacaoId}/itens/{itemId}/observacoes/{observacaoId}`: uma observação.
 
 IDs inexistentes ou pertencentes a outra execução/item retornam 404. Execuções não concluídas não disponibilizam análise ou observações (409). A migração inicializa a análise das divergências existentes como `PENDENTE`, preservando os resultados anteriores.
+
+## Filtros de consulta
+
+Use os parâmetros opcionais em `GET /api/conciliacoes/{id}/itens`:
+
+| Parâmetro | Critério |
+|---|---|
+| `idOperacao` | Igualdade exata, sensível a maiúsculas/minúsculas, preservando zeros e espaços. Não faz busca parcial. |
+| `resultado` | `CONCILIADO`, `DIVERGENTE`, `SEM_REGISTRO_CONTABIL` ou `SEM_OPERACAO_FINANCEIRA`. |
+| `situacaoAnalise` | `PENDENTE`, `EM_ANALISE` ou `ANALISADA`. Itens conciliados não têm situação de análise e não correspondem a esse filtro. |
+| `dataOperacao` | Data exata de referência, em `yyyy-MM-dd`. |
+| `dataInicial` | Data de referência maior ou igual ao limite informado, em `yyyy-MM-dd`. |
+| `dataFinal` | Data de referência menor ou igual ao limite informado, em `yyyy-MM-dd`. |
+
+A data de referência é a **data operacional**; quando não existir registro operacional, usar a data contábil. Em um par com datas diferentes, a data contábil não substitui a operacional.
+
+Todos os filtros informados são combinados com **E**. Uma data exata pode ser combinada com um período; se os critérios válidos não tiverem correspondência, a resposta será 200, com `total: 0` e `itens: []`.
+
+Exemplos:
+
+```http
+GET /api/conciliacoes/{id}/itens?resultado=DIVERGENTE&situacaoAnalise=PENDENTE
+GET /api/conciliacoes/{id}/itens?idOperacao=OP004&dataOperacao=2026-10-04
+GET /api/conciliacoes/{id}/itens?dataInicial=2026-10-03&dataFinal=2026-10-05&pagina=1&tamanhoPagina=20
+```
+
+Os filtros são aplicados no PostgreSQL antes da contagem e da paginação. `total` conta somente os itens filtrados; os totais financeiros da execução permanecem iguais. A ordenação continua por identificador, com desempate pelo ID. Página inicial 1, tamanho padrão 20 e máximo 100.
+
+Para deixar um filtro desativado, omita o parâmetro. Parâmetros vazios, identificador em branco ou com caractere nulo, valores fora das listas, datas inválidas e período invertido retornam 400 com `codigo: FILTRO_INVALIDO`. Resultado e situação devem usar os valores em maiúsculas apresentados na tabela. Os filtros abrangem somente os itens da execução indicada e não disponibilizam resultados de execuções não concluídas.
+
+## Decisões de implementação
+
+Registro consolidado dos critérios confirmados nas etapas já implementadas. As seções deste guia detalham os contratos correspondentes. RN01–RN18 estão aprovadas, mas isso não aprova automaticamente os detalhes ainda não definidos de etapas futuras. A modelagem inicial em `docs/` continua sendo uma referência.
+
+| Tema | Decisão adotada |
+|---|---|
+| Base técnica | Backend C#/.NET 10, PostgreSQL e EF Core; manter implementação simples, seguindo a estrutura existente. React/TypeScript está previsto para o frontend. |
+| Documentação | README resumido; execução, testes, API e este registro ficam neste guia. Não criar documentos adicionais de planejamento sem solicitação. |
+| Layout CSV — RN03 | `csv-v1`: UTF-8, BOM opcional, separador `;`, cabeçalho obrigatório `id_operacao;data_operacao;valor`. Datas `yyyy-MM-dd`, decimal com ponto, sem milhar/notação científica e até duas casas. |
+| Normalização — RN03 | Remover espaços externos, ignorar linhas em branco e preservar identificadores como texto, incluindo zeros, maiúsculas/minúsculas e espaços internos. |
+| Valores e limites da importação | Negativos e zero aceitos, sem arredondamento financeiro; rejeitar valores fora da representação exata de `decimal`. Limite por arquivo: 10.485.760 bytes. |
+| Duplicidade — RN01 | Identificador repetido dentro do arquivo rejeita a importação inteira, inclusive repetição exata. Referenciar primeira linha e linha repetida. Repetição entre arquivos distintos permite correções. |
+| Identidade do arquivo — RN02 | SHA-256 dos bytes originais por fonte. Renomear conteúdo idêntico não permite reimportação. Conteúdo diferente ou outra fonte permite importação; falhas não bloqueiam nova tentativa. |
+| Integridade — RN17/RN18 | Rejeitar todo o arquivo se houver linha inválida. Persistir original, metadados e registros na mesma transação. Preservar dados de origem; corrigir por novo arquivo. Falhas técnicas não produzem resultados definitivos parciais. |
+| Correspondência — RN04 | Um arquivo de cada fonte por execução, relação um para um por `id_operacao`, com igualdade sensível a maiúsculas/minúsculas e preservação de zeros. |
+| Comparações — RN05/RN06/RN07 | Valores e datas exatamente iguais, sem tolerância. Preservar divergência de valor e data no mesmo par e identificar ausências nas duas direções. |
+| Execuções — RN08/RN09/RN12 | Reutilizar execução concluída com os mesmos arquivos e regras. Correção gera outra execução. Falha permite nova tentativa com outro ID e preservação da anterior. Processamento síncrono, versão fixa `conciliacao-v1` e serialização de solicitações equivalentes. |
+| Indicadores — RN14 | Cada par ou registro sem correspondência é um item. Par divergente conta uma vez, mesmo com duas divergências. Taxa = pares conciliados / itens × 100, duas casas, ponto médio para longe de zero; denominador zero retorna zero. |
+| Análise — RN10 | Divergências e ausências começam `PENDENTE`; conciliados ficam sem situação. Permitir transições entre as três situações, inclusive reabertura, sem alterar o resultado financeiro. |
+| Observações — RN11 | Texto obrigatório até 2.000 caracteres e analista obrigatório até 100; instante UTC do servidor. Identidade não autenticada. Permitir novas observações inclusive após `ANALISADA`; nunca editar ou excluir observações anteriores. |
+| Filtros — RN13 | Combinação com E, identificador exato, resultado/situação existentes, prioridade da data operacional com fallback contábil, período inclusivo e data exata combinável com período. Filtros inválidos retornam 400; nenhuma correspondência retorna lista vazia. |
+| Paginação — RN13 | Aplicar filtros antes de contar e paginar. Página a partir de 1, padrão 20 e máximo 100. Itens por identificador; histórico de execuções do mais recente para o mais antigo; observações da mais antiga para a mais recente, sempre com desempate por ID. |
+
+Ao aprovar novos critérios, atualizar este registro e a seção do contrato afetado. Detalhes ainda em aberto do dashboard, da exportação e de outras etapas devem ser apresentados ao usuário antes de implementação.
 

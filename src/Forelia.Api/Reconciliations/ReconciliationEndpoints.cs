@@ -34,15 +34,17 @@ public static class ReconciliationEndpoints
             return Results.Ok(new { pagina = page, tamanhoPagina = size, total, itens = executions.Select(ReconciliationResponse.From) });
         });
         app.MapGet("/api/conciliacoes/{id:guid}/itens", async (Guid id, int? pagina, int? tamanhoPagina,
-            ForeliaDbContext database, CancellationToken cancellationToken) =>
+            [AsParameters] ReconciliationItemFilters filters, ForeliaDbContext database, CancellationToken cancellationToken) =>
         {
             var page = pagina ?? 1;
             var size = tamanhoPagina ?? 20;
             if (!ValidPage(page, size)) return InvalidPage();
+            if (filters.Validate() is { } error)
+                return Results.BadRequest(new { codigo = "FILTRO_INVALIDO", mensagem = error });
             var status = await database.Reconciliations.Where(x => x.Id == id).Select(x => x.Status).SingleOrDefaultAsync(cancellationToken);
             if (status is null) return Results.NotFound();
             if (status != "CONCLUIDA") return Results.Conflict(new { codigo = "RESULTADO_INDISPONIVEL", mensagem = "A execução ainda não possui resultados definitivos." });
-            var query = database.ReconciliationItems.AsNoTracking().Where(x => x.ReconciliationId == id);
+            var query = filters.Apply(database.ReconciliationItems.AsNoTracking().Where(x => x.ReconciliationId == id));
             var total = await query.CountAsync(cancellationToken);
             var items = await query.OrderBy(x => x.ExternalId).ThenBy(x => x.Id)
                 .Skip((page - 1) * size).Take(size).ToListAsync(cancellationToken);

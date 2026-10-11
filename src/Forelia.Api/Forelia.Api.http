@@ -178,3 +178,60 @@ GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens/{{itemAnaliseId}}/observac
 
 ### Consultar a observação criada
 GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens/{{itemAnaliseId}}/observacoes/{{observacaoId}}
+
+### Filtrar por resultado e paginar somente os itens divergentes
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens?resultado=DIVERGENTE&pagina=1&tamanhoPagina=2
+
+> {%
+    client.test("Filtro aplicado antes da contagem e da paginação", function () {
+        client.assert(response.status === 200);
+        client.assert(response.body.total === 3);
+        client.assert(response.body.itens.length === 2);
+        client.assert(response.body.itens[0].idOperacao === "OP002");
+        client.assert(response.body.itens[1].idOperacao === "OP003");
+    });
+%}
+
+### Combinar identificador, resultado e situação atual da análise
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens?idOperacao=OP004&resultado=DIVERGENTE&situacaoAnalise=ANALISADA
+
+> {%
+    client.test("Filtros combinados com E", function () {
+        client.assert(response.status === 200);
+        client.assert(response.body.total === 1);
+        client.assert(response.body.itens[0].idOperacao === "OP004");
+        client.assert(response.body.itens[0].situacaoAnalise === "ANALISADA");
+    });
+%}
+
+### Período inclusivo pela data operacional: OP003, OP004 e OP005
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens?dataInicial=2026-10-03&dataFinal=2026-10-05
+
+> {%
+    client.test("Limites do período inclusivos", function () {
+        client.assert(response.status === 200);
+        client.assert(response.body.total === 3);
+        client.assert(response.body.itens.map(item => item.idOperacao).join(",") === "OP003,OP004,OP005");
+    });
+%}
+
+### OP009 não possui registro operacional: usar sua data contábil
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens?dataOperacao=2026-10-09
+
+> {%
+    client.test("Fallback para a data contábil quando não existe operação", function () {
+        client.assert(response.status === 200);
+        client.assert(response.body.total === 1);
+        client.assert(response.body.itens[0].idOperacao === "OP009");
+    });
+%}
+
+### Período invertido: retornar 400
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens?dataInicial=2026-10-05&dataFinal=2026-10-03
+
+> {%
+    client.test("Filtro inválido rejeitado", function () {
+        client.assert(response.status === 400);
+        client.assert(response.body.codigo === "FILTRO_INVALIDO");
+    });
+%}
