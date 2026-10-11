@@ -1,12 +1,31 @@
 # Guia de desenvolvimento
 
-Execute os comandos deste guia na raiz do repositório.
+Execute os comandos .NET e Docker em `backend/`. Os comandos do frontend e os exemplos `curl` partem da raiz do repositório.
+
+## Organização do repositório
+
+```text
+forelia/
+  backend/
+    Forelia.sln
+    global.json
+    dotnet-tools.json
+    compose.yaml
+    src/Forelia.Api/
+    tests/Forelia.Api.Tests/
+  frontend/
+  docs/
+  examples/csv/
+```
+
+A solução, a configuração do SDK e das ferramentas .NET e o PostgreSQL local ficam em `backend/`. O Compose mantém o nome `forelia` e o volume existente `postgres_data`. Documentação e CSVs fictícios permanecem compartilhados na raiz. Para voltar à raiz a partir de `backend/`, execute `cd ..`.
 
 ## Executar localmente
 
 Pré-requisitos: SDK .NET 10 e Docker em execução.
 
 ```sh
+cd backend
 docker compose up -d --wait
 dotnet tool restore
 dotnet restore Forelia.sln
@@ -15,7 +34,7 @@ ASPNETCORE_ENVIRONMENT=Development dotnet ef database update --project src/Forel
 dotnet run --project src/Forelia.Api --launch-profile Forelia.Api
 ```
 
-No Rider, abra `Forelia.sln` e execute o perfil `Forelia.Api`. As requisições de verificação estão em `src/Forelia.Api/Forelia.Api.http`.
+No Rider, abra `backend/Forelia.sln` e execute o perfil `Forelia.Api`. As requisições de verificação estão em `backend/src/Forelia.Api/Forelia.Api.http`.
 
 - API: `http://localhost:5080`.
 - Testar API no navegador: `http://localhost:5080/swagger`.
@@ -25,7 +44,7 @@ No Rider, abra `Forelia.sln` e execute o perfil `Forelia.Api`. As requisições 
 - PostgreSQL local: `localhost:5433`, banco e usuário `forelia`. A senha de desenvolvimento é `forelia_local`; serve apenas para esse ambiente local.
 - Dados do PostgreSQL são preservados no volume `postgres_data`. Use `docker compose stop` para parar o banco.
 
-A conexão local está em `appsettings.Development.json`. Para outro ambiente, configure `ConnectionStrings__Forelia` por variável de ambiente.
+A conexão local está em `backend/src/Forelia.Api/appsettings.Development.json`. Para outro ambiente, configure `ConnectionStrings__Forelia` por variável de ambiente.
 
 As migrações são aplicadas explicitamente pelo comando acima, sem alteração automática do esquema na inicialização da API. A modelagem em `docs/` permanece referência.
 
@@ -50,9 +69,9 @@ Swagger (`/swagger`), documento OpenAPI (`/openapi/v1.json`) e prévia HTML (`/d
 
 ## Frontend — React/TypeScript
 
-O frontend está em `frontend/`, no mesmo repositório. Abra a raiz `forelia/` no VS Code para acessar também a documentação e incluir tudo no mesmo commit, mantendo `Forelia.sln` no Rider para a API. Pré-requisito: Node.js 22.12 ou superior da linha 22, ou uma versão LTS posterior compatível com Vite; o ambiente verificado usa Node.js 22.14.0 e npm 10.9.2.
+O frontend está em `frontend/`, no mesmo repositório. Abra a raiz `forelia/` no VS Code para acessar também a documentação e incluir tudo no mesmo commit, mantendo `backend/Forelia.sln` no Rider para a API. Pré-requisito: Node.js 22.12 ou superior da linha 22, ou uma versão LTS posterior compatível com Vite; o ambiente verificado usa Node.js 22.14.0 e npm 10.9.2.
 
-Com a API em execução no Rider, use um segundo terminal:
+Com a API em execução no Rider, use um segundo terminal na raiz do repositório:
 
 ```sh
 npm --prefix frontend ci
@@ -116,6 +135,7 @@ Valores financeiros são lidos com `lossless-json` e mantidos como texto decimal
 ## Testes
 
 ```sh
+cd backend
 docker compose up -d --wait
 dotnet test Forelia.sln
 ```
@@ -133,6 +153,7 @@ Os testes da exportação verificam cabeçalho, BOM, delimitador, valores exatos
 Para outra instância de teste, configure `FORELIA_TEST_POSTGRES` com a conexão administrativa. Para executar somente os testes sem PostgreSQL:
 
 ```sh
+cd backend
 dotnet test Forelia.sln --filter 'Category!=Postgres'
 ```
 
@@ -313,6 +334,7 @@ Registro consolidado dos critérios confirmados nas etapas já implementadas. As
 
 | Tema | Decisão adotada |
 |---|---|
+| Organização do repositório | Aprovado em 11/10/2026: código, testes, solução, SDK, ferramentas .NET e Compose em `backend/`; interface em `frontend/`; documentação e exemplos na raiz. Comandos .NET/Docker executados em `backend/`. |
 | Base técnica | Backend C#/.NET 10, PostgreSQL e EF Core; manter implementação simples, seguindo a estrutura existente. Frontend React/TypeScript com Vite em `frontend/`. |
 | Organização e execução do frontend | Aprovado em 11/10/2026: `frontend/` no mesmo repositório, aberto no VS Code; API e solução .NET no Rider. React/TypeScript com Vite e npm, CSS próprio e ícones Lucide. Navegação por fragmentos e proxy local `/api`, sem alteração dos contratos do backend. `lossless-json` preserva os tokens decimais financeiros como texto; nenhuma tolerância, moeda ou cálculo financeiro é introduzido no frontend. |
 | Layout do frontend | Escolhido em 11/10/2026: navegação superior, fundo claro, grafite mais escuro nos textos e azul nas métricas. Revisão solicitada: botões, alertas e etiquetas com mais destaque visual e remoção da folha da marca. O protótipo propõe ações principais azuis, estados com cor e ícone e marca com duas setas opostas. Layout aprovado para implementação; o protótipo usa dados fictícios e o frontend React/TypeScript consome a API real. |

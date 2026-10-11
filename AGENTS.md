@@ -23,9 +23,9 @@
 ## Verificação e entrega
 
 - Use os exemplos válidos e os erros intencionais de `examples/csv/` para verificar comportamentos relevantes.
-- Execute `dotnet build Forelia.sln` e os testes pertinentes à alteração.
-- Para a suíte completa: PostgreSQL disponível via `docker compose up -d --wait`, seguido de `dotnet test Forelia.sln`.
-- Sem PostgreSQL, execute `dotnet test Forelia.sln --filter 'Category!=Postgres'` e informe que os testes de integração não foram executados.
+- Em `backend/`, execute `dotnet build Forelia.sln` e os testes pertinentes à alteração.
+- Em `backend/`, para a suíte completa: PostgreSQL disponível via `docker compose up -d --wait`, seguido de `dotnet test Forelia.sln`.
+- Em `backend/`, sem PostgreSQL, execute `dotnet test Forelia.sln --filter 'Category!=Postgres'` e informe que os testes de integração não foram executados.
 - Os testes de integração devem usar bancos isolados `forelia_test_*`, sem alterar o banco local `forelia`.
 - Preserve alterações existentes do usuário. Não faça commit ou push sem solicitação.
 - Após cada implementação relevante, forneça os comandos de `git add` e uma sugestão de `git commit` para o usuário executar.

@@ -16,7 +16,7 @@ Content-Type: multipart/form-data; boundary=forelia-boundary
 Content-Disposition: form-data; name="arquivo"; filename="operacional.csv"
 Content-Type: text/csv
 
-< ../../examples/csv/01_base/operacional.csv
+< ../../../examples/csv/01_base/operacional.csv
 --forelia-boundary--
 
 > {%
@@ -33,7 +33,7 @@ Content-Type: multipart/form-data; boundary=forelia-boundary
 Content-Disposition: form-data; name="arquivo"; filename="contabil.csv"
 Content-Type: text/csv
 
-< ../../examples/csv/01_base/contabil.csv
+< ../../../examples/csv/01_base/contabil.csv
 --forelia-boundary--
 
 > {%
@@ -50,7 +50,7 @@ Content-Type: multipart/form-data; boundary=forelia-boundary
 Content-Disposition: form-data; name="arquivo"; filename="operacional_campos_invalidos.csv"
 Content-Type: text/csv
 
-< ../../examples/csv/06_invalidos/operacional_campos_invalidos.csv
+< ../../../examples/csv/06_invalidos/operacional_campos_invalidos.csv
 --forelia-boundary--
 
 ### Conciliar os arquivos importados acima (201 nova execução, 200 resultado existente)
@@ -98,7 +98,7 @@ Content-Type: multipart/form-data; boundary=forelia-boundary
 Content-Disposition: form-data; name="arquivo"; filename="contabil_corrigido.csv"
 Content-Type: text/csv
 
-< ../../examples/csv/02_correcao/contabil_corrigido.csv
+< ../../../examples/csv/02_correcao/contabil_corrigido.csv
 --forelia-boundary--
 
 > {%

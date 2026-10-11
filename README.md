@@ -4,7 +4,7 @@ Aplicação de conciliação financeira que compara dados operacionais e contáb
 
 ## Tecnologias
 
-- Backend: C# / .NET 10.
+- Backend: C# / .NET 10, em `backend/`.
 - Banco de dados: PostgreSQL.
 - Frontend: React, TypeScript e Vite, em `frontend/`.
 
@@ -19,10 +19,10 @@ Aplicação de conciliação financeira que compara dados operacionais e contáb
 - Exportação CSV dos resultados, com filtros.
 - Swagger e prévia visual do dashboard para testes locais.
 
-O frontend inclui importação, conciliação, dashboard, histórico, filtros, análise, observações e exportação, integrado à API. Abra a raiz do repositório no VS Code para trabalhar no frontend e na documentação, mantendo a solução .NET no Rider; os comandos estão no guia de desenvolvimento.
+O frontend inclui importação, conciliação, dashboard, histórico, filtros, análise, observações e exportação, integrado à API. Abra a raiz do repositório no VS Code para trabalhar no frontend e na documentação, mantendo `backend/Forelia.sln` no Rider; os comandos estão no guia de desenvolvimento.
 
 ## Desenvolvimento
 
 - [Guia de execução, testes, API e decisões de implementação](docs/DESENVOLVIMENTO.md).
 - [CSVs de exemplo](examples/csv/) com dados fictícios e erros intencionais.
-- [Requisições para executar no Rider](src/Forelia.Api/Forelia.Api.http).
+- [Requisições para executar no Rider](backend/src/Forelia.Api/Forelia.Api.http).
