@@ -1,16 +1,17 @@
 using System.Globalization;
 using Forelia.Api.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Forelia.Api.Reconciliations;
 
 public sealed class ReconciliationItemFilters
 {
-    public string? IdOperacao { get; init; }
-    public string? Resultado { get; init; }
-    public string? SituacaoAnalise { get; init; }
-    public string? DataOperacao { get; init; }
-    public string? DataInicial { get; init; }
-    public string? DataFinal { get; init; }
+    [FromQuery(Name = "idOperacao")] public string? IdOperacao { get; init; }
+    [FromQuery(Name = "resultado")] public string? Resultado { get; init; }
+    [FromQuery(Name = "situacaoAnalise")] public string? SituacaoAnalise { get; init; }
+    [FromQuery(Name = "dataOperacao")] public string? DataOperacao { get; init; }
+    [FromQuery(Name = "dataInicial")] public string? DataInicial { get; init; }
+    [FromQuery(Name = "dataFinal")] public string? DataFinal { get; init; }
 
     private DateOnly? operationDate;
     private DateOnly? initialDate;

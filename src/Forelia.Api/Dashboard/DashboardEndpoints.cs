@@ -52,6 +52,8 @@ public static class DashboardEndpoints
                     new("SEM_REGISTRO_CONTABIL", occurrences?.MissingAccounting ?? 0),
                     new("SEM_OPERACAO_FINANCEIRA", occurrences?.MissingOperational ?? 0)],
                 recent.Select(ReconciliationResponse.From).ToArray()));
-        });
+        }).WithTags("Dashboard").WithSummary("Consultar indicadores por conciliação e histórico global")
+            .WithDescription("Sem conciliacaoId: execução concluída mais recente. Indicadores e ocorrências pertencem somente à seleção; contagens de tentativas e histórico são globais.")
+            .Produces<DashboardResponse>().Produces(400).Produces(404).Produces(409);
     }
 }

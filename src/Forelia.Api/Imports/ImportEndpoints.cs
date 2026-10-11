@@ -8,7 +8,10 @@ public static class ImportEndpoints
     public static void MapImportEndpoints(this WebApplication app)
     {
         app.MapPost("/api/importacoes/{fonte}", ImportAsync)
-            .WithName("ImportarCsv");
+            .WithName("ImportarCsv").WithTags("Importação")
+            .WithSummary("Importar um CSV operacional ou contábil")
+            .WithDescription("Fonte: operacional ou contabil. Escolha um arquivo no campo arquivo (até 10 MB). 201: importado; 409: conteúdo já importado, com importacaoExistenteId; 422: CSV rejeitado.")
+            .Produces<ImportResponse>(201).Produces(400).Produces(409).Produces(413).Produces(415).Produces(422);
         app.MapGet("/api/importacoes/{id:guid}", async (Guid id, ForeliaDbContext database,
             CancellationToken cancellationToken) =>
         {
@@ -18,7 +21,7 @@ public static class ImportEndpoints
                     x.SizeBytes, x.RecordCount, x.ImportedAt, x.LayoutVersion))
                 .SingleOrDefaultAsync(cancellationToken);
             return result is null ? Results.NotFound() : Results.Ok(result);
-        });
+        }).WithTags("Importação").WithSummary("Consultar metadados de uma importação").Produces<ImportResponse>().Produces(404);
     }
 
     private static async Task<IResult> ImportAsync(string fonte, HttpRequest request,

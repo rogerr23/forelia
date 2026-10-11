@@ -17,12 +17,13 @@ public static class ReconciliationEndpoints
                 200 => Results.Ok(result.Execution),
                 _ => Results.Json(new { codigo = result.Code, mensagem = result.Message }, statusCode: result.StatusCode)
             };
-        });
+        }).WithTags("Conciliação").WithSummary("Conciliar duas importações, uma de cada fonte")
+            .Produces<ReconciliationResponse>(201).Produces<ReconciliationResponse>(200).Produces(400).Produces(404).Produces(500);
         app.MapGet("/api/conciliacoes/{id:guid}", async (Guid id, ForeliaDbContext database, CancellationToken cancellationToken) =>
         {
             var execution = await database.Reconciliations.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
             return execution is null ? Results.NotFound() : Results.Ok(ReconciliationResponse.From(execution));
-        });
+        }).WithTags("Conciliação").WithSummary("Consultar o resumo de uma execução").Produces<ReconciliationResponse>().Produces(404);
         app.MapGet("/api/conciliacoes", async (int? pagina, int? tamanhoPagina, ForeliaDbContext database, CancellationToken cancellationToken) =>
         {
             var page = pagina ?? 1;
@@ -32,7 +33,7 @@ public static class ReconciliationEndpoints
             var executions = await database.Reconciliations.AsNoTracking().OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id)
                 .Skip((page - 1) * size).Take(size).ToListAsync(cancellationToken);
             return Results.Ok(new { pagina = page, tamanhoPagina = size, total, itens = executions.Select(ReconciliationResponse.From) });
-        });
+        }).WithTags("Conciliação").WithSummary("Consultar o histórico paginado de execuções");
         app.MapGet("/api/conciliacoes/{id:guid}/itens", async (Guid id, int? pagina, int? tamanhoPagina,
             [AsParameters] ReconciliationItemFilters filters, ForeliaDbContext database, CancellationToken cancellationToken) =>
         {
@@ -49,7 +50,8 @@ public static class ReconciliationEndpoints
             var items = await query.OrderBy(x => x.ExternalId).ThenBy(x => x.Id)
                 .Skip((page - 1) * size).Take(size).ToListAsync(cancellationToken);
             return Results.Ok(new { pagina = page, tamanhoPagina = size, total, itens = items.Select(ReconciliationItemResponse.From) });
-        });
+        }).WithTags("Conciliação").WithSummary("Consultar itens com filtros e paginação")
+            .WithDescription("Filtros combinados com E. Datas yyyy-MM-dd pela data operacional ou, na ausência dela, contábil. Resultado e situação em maiúsculas. Página padrão 1, tamanho padrão 20, máximo 100.");
     }
 
     private static bool ValidPage(int page, int size) => page >= 1 && size is >= 1 and <= 100 && (long)(page - 1) * size <= int.MaxValue;

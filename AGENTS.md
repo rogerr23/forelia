@@ -5,7 +5,7 @@
 - Leia o `README.md` para conhecer o projeto e `docs/DESENVOLVIMENTO.md` para consultar execução, testes e contratos da API.
 - Consulte `docs/FORELIA_REQUISITOS_V1.md`, quando disponível. RN01–RN18 estão aprovadas, mas critérios ainda indefinidos precisam de decisão explícita antes de implementação.
 - A modelagem em `docs/` é uma proposta de referência. Não a trate como esquema obrigatório.
-- As decisões de importação, conciliação, análise, filtros e dashboard estão consolidadas na seção “Decisões de implementação” de `docs/DESENVOLVIMENTO.md`; não as reabra apenas porque os documentos iniciais ainda as apresentam como pendentes.
+- As decisões de importação, conciliação, análise, filtros, dashboard e exportação estão consolidadas na seção “Decisões de implementação” de `docs/DESENVOLVIMENTO.md`; não as reabra apenas porque os documentos iniciais ainda as apresentam como pendentes.
 - Ao fechar novos critérios com o usuário, atualize esse registro e o contrato correspondente no mesmo guia, mantendo o README simples.
 
 ## Implementação
@@ -31,3 +31,4 @@
 - Após cada implementação relevante, forneça os comandos de `git add` e uma sugestão de `git commit` para o usuário executar.
 - Responda em português, explicando o que mudou, como foi verificado e quais decisões ou limitações permanecem.
 - Considere o Rider como IDE do usuário e mantenha a solução e as requisições `.http` utilizáveis nele.
+- Swagger, OpenAPI e a prévia HTML do dashboard ficam disponíveis somente em Development; não substituem o frontend previsto.

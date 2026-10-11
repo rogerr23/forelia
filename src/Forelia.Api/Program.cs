@@ -1,5 +1,6 @@
 using Forelia.Api.Data;
 using Forelia.Api.Dashboard;
+using Forelia.Api.Development;
 using Forelia.Api.Health;
 using Forelia.Api.Imports;
 using Forelia.Api.Reconciliations;
@@ -8,6 +9,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict);
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = ImportContract.MaxRequestBytes);
 builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = ImportContract.MaxRequestBytes);
 var connectionString = builder.Configuration.GetConnectionString("Forelia")
@@ -25,9 +28,11 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 builder.Services.AddSingleton<CsvValidator>();
 builder.Services.AddScoped<ImportService>();
 builder.Services.AddScoped<ReconciliationService>();
+if (builder.Environment.IsDevelopment()) builder.Services.AddDevelopmentTools();
 
 var app = builder.Build();
 app.UseExceptionHandler();
+if (app.Environment.IsDevelopment()) app.MapDevelopmentTools();
 app.MapGet("/", () => Results.Ok(new { application = "Forelia", version = "v1" }));
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
@@ -38,6 +43,7 @@ app.MapImportEndpoints();
 app.MapReconciliationEndpoints();
 app.MapAnalysisEndpoints();
 app.MapDashboardEndpoints();
+app.MapExportEndpoints();
 app.Run();
 
 public partial class Program;

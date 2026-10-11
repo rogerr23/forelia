@@ -18,6 +18,8 @@ dotnet run --project src/Forelia.Api --launch-profile Forelia.Api
 No Rider, abra `Forelia.sln` e execute o perfil `Forelia.Api`. As requisições de verificação estão em `src/Forelia.Api/Forelia.Api.http`.
 
 - API: `http://localhost:5080`.
+- Testar API no navegador: `http://localhost:5080/swagger`.
+- Prévia visual do dashboard: `http://localhost:5080/dashboard`.
 - Saúde da API: `/health/live`.
 - Conexão com o banco: `/health/ready` (503 se indisponível).
 - PostgreSQL local: `localhost:5433`, banco e usuário `forelia`. A senha de desenvolvimento é `forelia_local`; serve apenas para esse ambiente local.
@@ -28,6 +30,23 @@ A conexão local está em `appsettings.Development.json`. Para outro ambiente, c
 As migrações são aplicadas explicitamente pelo comando acima, sem alteração automática do esquema na inicialização da API. A modelagem em `docs/` permanece referência.
 
 O projeto usa .NET 10 LTS, com SDK 10.0.401 e EF Core/Npgsql da linha 10.
+
+## Testar pelo Swagger e visualizar o dashboard
+
+Execute o perfil `Forelia.Api` no Rider e abra `http://localhost:5080/swagger`. O perfil já usa `Development`. O OpenAPI é gerado pelo ASP.NET Core e o Swagger UI é servido pelo backend, incluindo seus arquivos JavaScript/CSS, sem CDN.
+
+1. Em **Importação**, use `POST /api/importacoes/{fonte}` com `fonte: operacional` e selecione `examples/csv/01_base/operacional.csv` no campo `arquivo`. Execute e copie o `id` retornado. Se já foi importado, a resposta 409 fornece `importacaoExistenteId`; reutilize esse ID.
+2. Repita com `fonte: contabil` e `examples/csv/01_base/contabil.csv`.
+3. Em **Conciliação**, use `POST /api/conciliacoes`, preenchendo `arquivoOperacionalId` e `arquivoContabilId` com os IDs das duas importações. Copie o ID da conciliação retornada. A resposta pode ser 201 para nova execução ou 200 para resultado reutilizado.
+4. Consulte o resumo e os itens usando esse ID. Em consultas, preencha somente os filtros desejados; omita os demais. Valores de resultado/situação usam maiúsculas e datas usam `yyyy-MM-dd`.
+5. Para análise e observações, copie também o ID de um item divergente da consulta de itens; os endpoints usam `conciliacaoId` e `itemId`.
+6. Em **Relatórios**, consulte `GET /api/conciliacoes/{id}/exportacao`, com os filtros desejados. A resposta oferece o CSV para download. Não há paginação na exportação.
+
+Abra `http://localhost:5080/dashboard` para visualizar os indicadores e as barras de ocorrências. A página consulta a API real, permite selecionar uma conciliação concluída entre as dez tentativas recentes ou informar o ID de outra execução. Use **Atualizar** após importar/conciliar pelo Swagger. Também é possível abrir `/dashboard?conciliacaoId=ID` diretamente. Ausência de resultados e erros de consulta são apresentados na página.
+
+O cenário base mostra 9 itens, 4 pares conciliados e taxa de 44,44%. Para testar uma correção, importe `examples/csv/02_correcao/contabil_corrigido.csv` e concilie com a importação operacional original. Essa execução terá 8 itens e taxa de 100%; a anterior continua consultável.
+
+Swagger (`/swagger`), documento OpenAPI (`/openapi/v1.json`) e prévia HTML (`/dashboard`) existem somente em `Development`. A prévia é uma ferramenta simples de verificação servida pelo backend, sem React ou processo separado de frontend. As APIs de negócio permanecem disponíveis nos demais ambientes.
 
 ## Testes
 
@@ -43,6 +62,8 @@ Os testes de análise verificam mudanças de situação e reabertura, preservaç
 Os testes dos filtros verificam igualdade exata de identificadores, combinação com E, datas de referência, limites inclusivos dos períodos, situação atual da análise, contagem antes da paginação, entradas inválidas e isolamento entre execuções.
 
 Os testes do dashboard verificam banco vazio, cenário base, correção sem soma entre execuções, reutilização, seleção de resultados históricos, contagem de tentativas por situação, limite de dez execuções recentes, resultados indisponíveis e preservação dos indicadores após mudanças na análise.
+
+Os testes da exportação verificam cabeçalho, BOM, delimitador, valores exatos, ausências, divergências múltiplas, todos os filtros sem paginação, situação atual da análise, separação entre original e correção, caracteres especiais CSV e rejeição de resultados indisponíveis. As ferramentas de desenvolvimento têm testes sem banco para verificar o documento OpenAPI, upload multipart, interface Swagger e indisponibilidade das páginas fora de Development.
 
 Para outra instância de teste, configure `FORELIA_TEST_POSTGRES` com a conexão administrativa. Para executar somente os testes sem PostgreSQL:
 
@@ -108,7 +129,7 @@ A paginação começa em 1; tamanho padrão 20 e máximo 100. Arquivo inexistent
 
 O cenário `01_base` produz 9 itens: 4 pares conciliados, 3 pares divergentes e 2 registros sem correspondência, com taxa de 44,44%. Com `02_correcao/contabil_corrigido.csv`, os 8 pares ficam conciliados, com taxa de 100%.
 
-As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação e o dashboard no Rider. Tela do dashboard, exportação e frontend permanecem para as próximas etapas.
+As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação, o dashboard e a exportação no Rider. O frontend React/TypeScript permanece para uma próxima etapa.
 
 ## Análise de divergências e observações
 
@@ -198,7 +219,28 @@ Os indicadores e a distribuição pertencem **somente à execução selecionada*
 
 No cenário base: 16 registros de origem, 9 itens, 4 pares conciliados, 3 pares divergentes, uma ausência em cada fonte e 5 itens com divergência. A distribuição tem 2 ocorrências de valor, 2 de data e uma de cada ausência: 6 ocorrências, com taxa de 44,44%. A correção apresenta 8 itens conciliados e taxa de 100%, sem somar os 9 itens da execução anterior.
 
-Sem execução concluída, os indicadores e as quatro categorias retornam zero; as contagens de tentativas e o histórico continuam disponíveis. A seleção do dashboard não filtra esses dois campos globais. Nesta etapa, a API não oferece filtros por período e não há tela ou gráfico; o frontend deverá distinguir visualmente itens de ocorrências.
+Sem execução concluída, os indicadores e as quatro categorias retornam zero; as contagens de tentativas e o histórico continuam disponíveis. A seleção do dashboard não filtra esses dois campos globais. A API não oferece filtros por período. A prévia em `/dashboard`, somente em Development, distingue os cartões de itens das barras de ocorrências; o frontend definitivo continua previsto.
+
+## Exportação CSV — RN16
+
+```http
+GET /api/conciliacoes/{id}/exportacao
+GET /api/conciliacoes/{id}/exportacao?resultado=DIVERGENTE&situacaoAnalise=PENDENTE
+```
+
+Somente execuções `CONCLUIDA` podem ser exportadas. O relatório aceita os mesmos seis filtros da consulta de itens, com os mesmos critérios de validação, combinação com E e datas. Exporta **todos os itens filtrados**, sem paginação, ordenados por identificador e depois ID. `pagina` e `tamanhoPagina` não fazem parte deste contrato e não limitam o relatório.
+
+Download com nome `conciliacao-{id}.csv`, tipo `text/csv; charset=utf-8`, UTF-8 com BOM, separador `;` e finais de linha CRLF. Aspas, delimitadores e quebras de linha dentro dos campos recebem o escape CSV padrão. Identificadores são preservados como texto, sem remoção de zeros ou alteração do conteúdo. Ao importar o CSV em uma planilha, configure a coluna de identificador como texto para preservar essa representação.
+
+Cabeçalho fixo:
+
+```text
+id_operacao;valor_operacional;valor_contabil;data_operacional;data_contabil;resultado;divergencias;situacao_analise
+```
+
+Valores com ponto e exatamente duas casas, sem arredondar os dados financeiros; datas `yyyy-MM-dd`. Valores e datas da fonte ausente são campos vazios. `divergencias` contém `VALOR`, `DATA`, `VALOR|DATA` ou vazio; as ausências são representadas no `resultado`. `situacao_analise` reflete a situação atual no momento da leitura e fica vazia nos itens conciliados. Observações e identificação do analista não fazem parte deste relatório.
+
+Sem correspondências, retornar 200 e somente o cabeçalho com BOM. Filtro inválido retorna 400 com `FILTRO_INVALIDO`, execução inexistente 404 e não concluída 409 com `RESULTADO_INDISPONIVEL`, sem download. A exportação lê os registros progressivamente e não altera resultados ou observações. PDF e XLSX continuam fora desta etapa.
 
 ## Decisões de implementação
 
@@ -225,7 +267,9 @@ Registro consolidado dos critérios confirmados nas etapas já implementadas. As
 | Recorte do dashboard — RN15 | Autorizado pelo usuário em 11/10/2026 para implementação e revisão posterior. Indicadores e distribuição de uma única execução concluída, selecionada por ID ou pela criação mais recente, com desempate por ID crescente. Não somar operações entre execuções. |
 | Histórico do dashboard — RN15 | Contagens globais de tentativas por situação e dez tentativas mais recentes, incluindo falhas. Reutilização não aumenta a contagem. Selecionar outra conciliação não filtra esses campos. |
 | Distribuição do dashboard — RN14/RN15 | Contar ocorrências de valor, data e ausências separadamente. Total de itens com divergência inclui ausências e conta cada item uma vez; uma divergência dupla produz duas ocorrências. Preservar indicadores ao alterar a análise. |
-| Limites do dashboard — RN15 | Sem resultado concluído: seleção nula e indicadores zerados. ID inexistente 404, malformado 400 e não concluído 409. Implementar API e testes nesta etapa; tela/gráfico e filtros por período ficam para etapa futura. |
+| Limites do dashboard — RN15 | Sem resultado concluído: seleção nula e indicadores zerados. ID inexistente 404, malformado 400 e não concluído 409. API e testes na primeira etapa; prévia visual local adicionada na etapa seguinte. Frontend definitivo e filtros por período continuam futuros. |
+| Exportação — RN16 | Aprovado em 11/10/2026: uma execução concluída, mesmos seis filtros, todos os itens filtrados sem paginação e mesma ordenação. UTF-8 com BOM, `;`, CRLF, datas `yyyy-MM-dd`, valores com duas casas e campos ausentes vazios. Oito colunas definidas no contrato; múltiplas divergências `VALOR|DATA`, análise atual, sem observações. Sem itens: somente cabeçalho; erros 400/404/409. |
+| Testes interativos e prévia visual | Solicitação de 11/10/2026: Swagger UI com OpenAPI gerado pelo ASP.NET Core e prévia HTML simples em `/dashboard`, servidos somente em Development. Prévia reutiliza a API e os critérios aprovados do dashboard, com indicadores e barras de ocorrências; frontend React e filtros por período continuam futuros. |
 
-Ao aprovar novos critérios, atualizar este registro e a seção do contrato afetado. As decisões do dashboard podem ser revistas com o usuário a partir deste registro. Detalhes ainda em aberto dos filtros por período do dashboard, da exportação e de outras etapas devem ser apresentados ao usuário antes de implementação.
+Ao aprovar novos critérios, atualizar este registro e a seção do contrato afetado. As decisões podem ser revistas com o usuário a partir deste registro. Detalhes ainda em aberto dos filtros por período do dashboard e de outras etapas devem ser apresentados ao usuário antes de implementação.
 

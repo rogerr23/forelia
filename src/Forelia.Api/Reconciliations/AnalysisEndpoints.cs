@@ -7,7 +7,7 @@ public static class AnalysisEndpoints
 {
     public static void MapAnalysisEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/conciliacoes/{conciliacaoId:guid}/itens/{itemId:guid}");
+        var group = app.MapGroup("/api/conciliacoes/{conciliacaoId:guid}/itens/{itemId:guid}").WithTags("Análise e observações");
         group.MapGet("", async (Guid conciliacaoId, Guid itemId, ForeliaDbContext database, CancellationToken cancellationToken) =>
         {
             var (item, error) = await FindItemAsync(conciliacaoId, itemId, database, cancellationToken);
