@@ -6,7 +6,7 @@ Aplicação de conciliação financeira que compara dados operacionais e contáb
 
 - Backend: C# / .NET 10.
 - Banco de dados: PostgreSQL.
-- Frontend previsto: React e TypeScript.
+- Frontend: React, TypeScript e Vite, em `frontend/`.
 
 ## Estado atual
 
@@ -19,7 +19,7 @@ Aplicação de conciliação financeira que compara dados operacionais e contáb
 - Exportação CSV dos resultados, com filtros.
 - Swagger e prévia visual do dashboard para testes locais.
 
-O frontend React/TypeScript permanece para uma próxima etapa.
+O frontend inclui importação, conciliação, dashboard, histórico, filtros, análise, observações e exportação, integrado à API. Abra a raiz do repositório no VS Code para trabalhar no frontend e na documentação, mantendo a solução .NET no Rider; os comandos estão no guia de desenvolvimento.
 
 ## Desenvolvimento
 

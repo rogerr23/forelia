@@ -1,0 +1,926 @@
+#forelia-layout .fl-app {
+  --fl-bg: light-dark(#f5f6f3, #171d1a);
+  --fl-panel: light-dark(#ffffff, #202923);
+  --fl-text: light-dark(#22342b, #edf3ee);
+  --fl-muted: light-dark(#627267, #a8b8ae);
+  --fl-line: light-dark(#e1e7e1, #35443a);
+  --fl-brand: light-dark(#245b42, #9ed5b6);
+  --fl-onbrand: light-dark(#fff, #173524);
+  --fl-soft: light-dark(#eaf3ed, #283e30);
+  --fl-warning: light-dark(#83581b, #ebc786);
+  --fl-warnbg: light-dark(#faf1df, #3e3421);
+  color: var(--fl-text);
+  background: var(--fl-bg);
+  font:
+    14px/1.5 -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  min-height: 760px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+}
+#forelia-layout * {
+  box-sizing: border-box;
+}
+#forelia-layout .fl-app[data-palette='grafite-azul'] {
+  color-scheme: light;
+  --fl-bg: #f4f4f5;
+  --fl-panel: #ffffff;
+  --fl-text: #202024;
+  --fl-muted: #606069;
+  --fl-line: #dedee3;
+  --fl-brand: #25252c;
+  --fl-onbrand: #ffffff;
+  --fl-soft: #e7e7eb;
+  --fl-warning: #84521b;
+  --fl-warnbg: #fff2df;
+  --fl-metric: #315ac4;
+}
+#forelia-layout [data-palette='grafite-azul'] .fl-stat strong {
+  color: var(--fl-metric);
+}
+#forelia-layout [data-palette='grafite-azul'] .fl-fill {
+  background: var(--fl-metric);
+}
+#forelia-layout .fl-nav {
+  background: var(--fl-panel);
+  border-right: 1px solid var(--fl-line);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+#forelia-layout .fl-logo {
+  font-size: 23px;
+  font-weight: 650;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+#forelia-layout .fl-logo i {
+  color: var(--fl-brand);
+}
+#forelia-layout .fl-sub {
+  font-size: 12px;
+  color: var(--fl-muted);
+  letter-spacing: 0;
+  margin-top: 2px;
+}
+#forelia-layout nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#forelia-layout button,
+#forelia-layout input,
+#forelia-layout select,
+#forelia-layout textarea {
+  font: inherit;
+}
+#forelia-layout button {
+  cursor: inherit;
+}
+#forelia-layout .fl-navbtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  color: var(--fl-muted);
+  text-align: left;
+  padding: 11px 12px;
+  border-radius: 8px;
+}
+#forelia-layout .fl-navbtn[aria-current='page'] {
+  color: var(--fl-brand);
+  background: var(--fl-soft);
+  font-weight: 600;
+}
+#forelia-layout .fl-foot {
+  margin-top: auto;
+  font-size: 12px;
+  color: var(--fl-muted);
+  padding: 12px;
+}
+#forelia-layout .fl-main {
+  min-width: 0;
+}
+#forelia-layout .fl-topbar {
+  padding: 17px 28px;
+  border-bottom: 1px solid var(--fl-line);
+  background: var(--fl-panel);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--fl-muted);
+  font-size: 12px;
+}
+#forelia-layout .fl-content {
+  padding: 28px;
+}
+#forelia-layout .fl-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+#forelia-layout h1 {
+  font-size: 26px;
+  letter-spacing: -0.7px;
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+#forelia-layout h2 {
+  font-size: 15px;
+  margin: 0;
+  font-weight: 600;
+}
+#forelia-layout p {
+  margin: 4px 0;
+  color: var(--fl-muted);
+}
+#forelia-layout .fl-button {
+  border: 1px solid var(--fl-line);
+  border-radius: 8px;
+  padding: 9px 13px;
+  background: var(--fl-panel);
+  color: var(--fl-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+}
+#forelia-layout .fl-primary {
+  background: var(--fl-brand);
+  border-color: var(--fl-brand);
+  color: var(--fl-onbrand);
+}
+#forelia-layout .fl-button:disabled {
+  opacity: 0.5;
+}
+#forelia-layout .fl-panel {
+  background: var(--fl-panel);
+  border: 1px solid var(--fl-line);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+#forelia-layout .fl-panelhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+#forelia-layout .fl-small {
+  font-size: 12px;
+  color: var(--fl-muted);
+}
+#forelia-layout .fl-select,
+#forelia-layout input,
+#forelia-layout textarea {
+  color: var(--fl-text);
+  background: var(--fl-panel);
+  border: 1px solid var(--fl-line);
+  border-radius: 7px;
+  padding: 8px 10px;
+  max-width: 100%;
+  min-width: 0;
+}
+#forelia-layout .fl-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+#forelia-layout .fl-stat {
+  background: var(--fl-panel);
+  border: 1px solid var(--fl-line);
+  border-radius: 10px;
+  padding: 18px;
+}
+#forelia-layout .fl-stat strong {
+  display: block;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+  margin: 7px 0;
+}
+#forelia-layout .fl-stat em {
+  font-size: 12px;
+  color: var(--fl-muted);
+  font-style: normal;
+}
+#forelia-layout .fl-chartrow {
+  display: grid;
+  grid-template-columns: 170px 1fr 24px;
+  gap: 14px;
+  align-items: center;
+  margin: 16px 0;
+  font-size: 12px;
+}
+#forelia-layout .fl-track {
+  height: 9px;
+  background: var(--fl-bg);
+  border-radius: 6px;
+  overflow: hidden;
+}
+#forelia-layout .fl-fill {
+  height: 100%;
+  background: var(--fl-brand);
+  border-radius: 6px;
+}
+#forelia-layout table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+#forelia-layout th {
+  text-align: left;
+  color: var(--fl-muted);
+  font-weight: 500;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--fl-line);
+}
+#forelia-layout td {
+  padding: 13px 8px;
+  border-bottom: 1px solid var(--fl-line);
+  font-variant-numeric: tabular-nums;
+  vertical-align: top;
+}
+#forelia-layout tr:last-child td {
+  border-bottom: 0;
+}
+#forelia-layout .fl-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--fl-soft);
+  color: var(--fl-brand);
+  font-size: 11px;
+  white-space: nowrap;
+}
+#forelia-layout .fl-warn {
+  background: var(--fl-warnbg);
+  color: var(--fl-warning);
+}
+#forelia-layout .fl-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fl-brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-align: left;
+}
+#forelia-layout .fl-uploadgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 22px 0;
+}
+#forelia-layout .fl-upload {
+  border: 1px dashed var(--fl-line);
+  border-radius: 10px;
+  padding: 26px 18px;
+  background: var(--fl-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+#forelia-layout .fl-upload > i {
+  color: var(--fl-brand);
+}
+#forelia-layout .fl-notice {
+  background: var(--fl-soft);
+  padding: 14px 16px;
+  border-radius: 8px;
+  color: var(--fl-brand);
+  font-size: 12px;
+  margin: 14px 0;
+}
+#forelia-layout .fl-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+#forelia-layout .fl-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+#forelia-layout label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--fl-muted);
+}
+#forelia-layout .fl-scroll {
+  overflow-x: auto;
+}
+#forelia-layout .fl-detail {
+  border-left: 3px solid var(--fl-brand);
+}
+#forelia-layout .fl-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px 0;
+}
+#forelia-layout .fl-notes {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--fl-line);
+  margin-bottom: 14px;
+}
+#forelia-layout .fl-notes p {
+  color: var(--fl-text);
+  font-size: 13px;
+}
+#forelia-layout .fl-top {
+  display: block;
+}
+#forelia-layout .fl-top .fl-nav {
+  padding: 18px 28px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-right: 0;
+  border-bottom: 1px solid var(--fl-line);
+  gap: 14px;
+  flex-wrap: wrap;
+}
+#forelia-layout .fl-top nav {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+#forelia-layout .fl-top .fl-foot {
+  display: none;
+}
+#forelia-layout .fl-top .fl-content {
+  max-width: 940px;
+  margin: auto;
+}
+#forelia-layout .fl-top .fl-topbar {
+  background: var(--fl-bg);
+}
+#forelia-layout svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  #forelia-layout .fl-app {
+    display: block;
+    min-height: 980px;
+  }
+  #forelia-layout .fl-nav {
+    padding: 18px;
+    gap: 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--fl-line);
+  }
+  #forelia-layout nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  #forelia-layout .fl-foot {
+    display: none;
+  }
+  #forelia-layout .fl-content {
+    padding: 20px;
+  }
+  #forelia-layout .fl-topbar {
+    padding: 12px 20px;
+  }
+  #forelia-layout .fl-top .fl-nav {
+    padding: 18px;
+  }
+  #forelia-layout .fl-navbtn {
+    padding: 9px;
+  }
+}
+@media (max-width: 490px) {
+  #forelia-layout .fl-stats,
+  #forelia-layout .fl-uploadgrid,
+  #forelia-layout .fl-filters,
+  #forelia-layout .fl-compare {
+    grid-template-columns: 1fr;
+  }
+  #forelia-layout .fl-stat {
+    padding: 12px;
+  }
+  #forelia-layout .fl-stat strong {
+    font-size: 24px;
+    margin: 2px 0;
+  }
+  #forelia-layout .fl-chartrow {
+    grid-template-columns: 115px 1fr 18px;
+    gap: 8px;
+  }
+  #forelia-layout .fl-content {
+    padding: 14px;
+  }
+  #forelia-layout .fl-panel {
+    padding: 14px;
+  }
+  #forelia-layout .fl-topbar {
+    padding: 12px 14px;
+  }
+  #forelia-layout h1 {
+    font-size: 23px;
+  }
+}
+
+#forelia-layout .fl-stepper {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  color: var(--fl-muted);
+  font-size: 12px;
+}
+#forelia-layout .fl-step {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+#forelia-layout .fl-step b {
+  width: 26px;
+  height: 26px;
+  background: var(--fl-soft);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--fl-text);
+  font-weight: 500;
+}
+#forelia-layout .fl-step.is-active {
+  color: var(--fl-text);
+}
+#forelia-layout .fl-step.is-active b {
+  background: var(--fl-brand);
+  color: var(--fl-onbrand);
+}
+#forelia-layout .fl-upload {
+  padding: 22px;
+  gap: 12px;
+  min-width: 0;
+}
+#forelia-layout .fl-upload label {
+  width: 100%;
+}
+#forelia-layout .fl-upload input {
+  width: 100%;
+  font-size: 12px;
+}
+#forelia-layout .fl-filesummary {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 0 18px;
+  color: var(--fl-muted);
+  font-size: 12px;
+}
+#forelia-layout .fl-filesummary strong {
+  color: var(--fl-text);
+  font-weight: 500;
+}
+#forelia-layout .fl-resultmetrics {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+#forelia-layout .fl-resultmetrics strong {
+  color: var(--fl-metric);
+  font-size: 22px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+#forelia-layout .fl-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 16px;
+  align-items: start;
+}
+#forelia-layout .fl-split > div {
+  min-width: 0;
+}
+#forelia-layout .fl-detail {
+  border-left: 0;
+}
+#forelia-layout .fl-detail .fl-compare {
+  grid-template-columns: 1fr;
+}
+#forelia-layout .fl-data {
+  width: 100%;
+  margin: 12px 0;
+}
+#forelia-layout .fl-data td,
+#forelia-layout .fl-data th {
+  padding: 10px 5px;
+}
+#forelia-layout .fl-highlight {
+  background: var(--fl-warnbg);
+  color: var(--fl-warning);
+}
+#forelia-layout .fl-record.selected {
+  background: var(--fl-soft);
+}
+#forelia-layout .fl-record td:first-child {
+  font-weight: 600;
+}
+#forelia-layout .fl-table td:nth-child(2),
+#forelia-layout .fl-table td:nth-child(3) {
+  text-align: right;
+  white-space: nowrap;
+}
+#forelia-layout .fl-date {
+  display: block;
+  color: var(--fl-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+#forelia-layout .fl-detail textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+}
+#forelia-layout .fl-detail input,
+#forelia-layout .fl-detail select {
+  width: 100%;
+}
+#forelia-layout .fl-detail .fl-notes p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+#forelia-layout .fl-empty {
+  text-align: center;
+  padding: 30px 12px;
+  color: var(--fl-muted);
+}
+#forelia-layout .fl-demo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--fl-muted);
+  font-size: 12px;
+  margin-top: 20px;
+}
+#forelia-layout .fl-panel [role='alert'] {
+  background: var(--fl-warnbg);
+  color: var(--fl-warning);
+  padding: 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+#forelia-layout .fl-error-table {
+  font-size: 12px;
+}
+#forelia-layout .fl-error-table td {
+  overflow-wrap: anywhere;
+}
+#forelia-layout .fl-content {
+  padding-top: 24px;
+}
+@media (max-width: 900px) {
+  #forelia-layout .fl-split {
+    grid-template-columns: 1fr;
+  }
+  #forelia-layout .fl-detail .fl-compare {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 490px) {
+  #forelia-layout .fl-detail .fl-compare {
+    grid-template-columns: 1fr;
+  }
+  #forelia-layout .fl-stepper {
+    gap: 12px;
+  }
+  #forelia-layout .fl-resultmetrics {
+    gap: 12px;
+  }
+  #forelia-layout .fl-resultmetrics strong {
+    font-size: 19px;
+  }
+}
+@media (pointer: coarse) {
+  #forelia-layout input,
+  #forelia-layout select,
+  #forelia-layout textarea {
+    font-size: 16px;
+  }
+  #forelia-layout button {
+    min-height: 44px;
+  }
+}
+
+#forelia-layout .fl-app {
+  --fl-action: #315ac4;
+  --fl-action-hover: #2448aa;
+  --fl-info-bg: #edf2ff;
+  --fl-info-text: #294d9d;
+  --fl-success-bg: #e4f4ee;
+  --fl-success-text: #1c7052;
+  --fl-pending-bg: #fff3d8;
+  --fl-pending-text: #876010;
+  --fl-error-bg: #fff0ed;
+  --fl-error-text: #ad3f32;
+  --fl-shadow: 0 3px 9px rgba(34, 45, 76, 0.08);
+}
+#forelia-layout .fl-logomark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #426cdf, #284da8);
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(49, 90, 196, 0.18);
+}
+#forelia-layout .fl-logomark svg {
+  width: 21px;
+  height: 21px;
+}
+#forelia-layout .fl-logo {
+  gap: 10px;
+  letter-spacing: -0.8px;
+}
+#forelia-layout .fl-sub {
+  padding-left: 44px;
+  margin-top: 3px;
+}
+#forelia-layout .fl-button {
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(28, 28, 35, 0.04);
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+#forelia-layout .fl-button:not(:disabled):hover {
+  background: var(--fl-info-bg);
+  border-color: #bdccef;
+  box-shadow: var(--fl-shadow);
+  transform: translateY(-1px);
+}
+#forelia-layout .fl-button:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+#forelia-layout .fl-primary {
+  background: var(--fl-action);
+  border-color: var(--fl-action);
+  color: #fff;
+  box-shadow: 0 3px 7px rgba(49, 90, 196, 0.17);
+}
+#forelia-layout .fl-primary:not(:disabled):hover {
+  background: var(--fl-action-hover);
+  border-color: var(--fl-action-hover);
+  box-shadow: 0 4px 10px rgba(49, 90, 196, 0.23);
+}
+#forelia-layout .fl-primary:disabled {
+  background: #eceef3;
+  color: #848894;
+  border-color: #eceef3;
+  box-shadow: none;
+  opacity: 1;
+}
+#forelia-layout .fl-navbtn {
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+#forelia-layout .fl-navbtn:hover {
+  background: var(--fl-bg);
+  color: var(--fl-text);
+}
+#forelia-layout .fl-navbtn[aria-current='page'] {
+  background: var(--fl-info-bg);
+  color: var(--fl-action);
+}
+#forelia-layout .fl-link {
+  color: var(--fl-action);
+  text-decoration: none;
+  font-weight: 500;
+}
+#forelia-layout .fl-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+#forelia-layout .fl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 4px 8px;
+  white-space: normal;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+#forelia-layout .fl-badge svg {
+  width: 13px;
+  height: 13px;
+}
+#forelia-layout .fl-status-success {
+  background: var(--fl-success-bg);
+  color: var(--fl-success-text);
+}
+#forelia-layout .fl-status-info {
+  background: var(--fl-info-bg);
+  color: var(--fl-info-text);
+}
+#forelia-layout .fl-status-pending {
+  background: var(--fl-pending-bg);
+  color: var(--fl-pending-text);
+}
+#forelia-layout .fl-status-warning {
+  background: #fff0de;
+  color: #965015;
+}
+#forelia-layout .fl-panel .fl-alert-error {
+  background: var(--fl-error-bg);
+  color: var(--fl-error-text);
+}
+#forelia-layout .fl-alert-info {
+  background: var(--fl-info-bg);
+  color: var(--fl-info-text);
+}
+#forelia-layout .fl-alert-success {
+  background: var(--fl-success-bg);
+  color: var(--fl-success-text);
+}
+#forelia-layout .fl-alert-error,
+#forelia-layout .fl-alert-info,
+#forelia-layout .fl-alert-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+#forelia-layout .fl-alert-error > svg,
+#forelia-layout .fl-alert-info > svg,
+#forelia-layout .fl-alert-success > svg {
+  margin-top: 1px;
+}
+#forelia-layout .fl-upload {
+  background: #fafbff;
+  border-color: #ccd6ea;
+}
+#forelia-layout .fl-upload > svg {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+  border-radius: 8px;
+  background: var(--fl-info-bg);
+  color: var(--fl-action);
+}
+#forelia-layout .fl-uploadmark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--fl-info-bg);
+  color: var(--fl-action);
+}
+#forelia-layout .fl-uploadmark svg {
+  width: 19px;
+  height: 19px;
+}
+#forelia-layout .fl-step.is-active b {
+  background: var(--fl-action);
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(49, 90, 196, 0.16);
+}
+#forelia-layout .fl-panel {
+  box-shadow: 0 2px 6px rgba(28, 35, 53, 0.025);
+}
+#forelia-layout .fl-record.selected {
+  background: var(--fl-info-bg);
+}
+#forelia-layout .fl-record .fl-small .fl-badge {
+  margin-top: 5px;
+}
+#forelia-layout .fl-select:focus,
+#forelia-layout input:focus,
+#forelia-layout textarea:focus {
+  outline: 2px solid #315ac4;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  #forelia-layout .fl-button,
+  #forelia-layout .fl-navbtn {
+    transition: none;
+  }
+  #forelia-layout .fl-button:not(:disabled):hover {
+    transform: none;
+  }
+}
+#forelia-layout .fl-app {
+  min-height: 100vh;
+  border-radius: 0;
+  overflow: visible;
+}
+#forelia-layout .fl-navbtn,
+#forelia-layout .fl-button,
+#forelia-layout .fl-logo {
+  text-decoration: none;
+}
+#forelia-layout .fl-logo {
+  color: var(--fl-text);
+}
+#forelia-layout .fl-id {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+#forelia-layout .fl-filename {
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+#forelia-layout .fl-filelabel {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  color: var(--fl-text);
+  background: var(--fl-panel);
+  border: 1px solid var(--fl-line);
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-weight: 500;
+  overflow: hidden;
+}
+#forelia-layout .fl-filelabel:focus-within {
+  outline: 2px solid var(--fl-action);
+  outline-offset: 2px;
+}
+#forelia-layout .fl-filelabel input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+#forelia-layout .fl-filelabel:has(input:disabled) {
+  opacity: 0.5;
+}
+#forelia-layout .fl-upload .fl-scroll {
+  max-width: 100%;
+}
+#forelia-layout .fl-upload .fl-notice {
+  margin: 0;
+  width: 100%;
+}
+#forelia-layout .fl-content {
+  overflow-wrap: anywhere;
+}
+#forelia-layout .fl-refresh {
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+#forelia-layout .fl-pagination {
+  margin-top: 16px;
+}
+#forelia-layout .fl-notes-title {
+  margin-top: 22px;
+}
+#forelia-layout .fl-noteinput {
+  margin-top: 12px;
+}
+#forelia-layout .fl-addnote {
+  margin-top: 14px;
+}
+#forelia-layout .fl-data {
+  table-layout: fixed;
+}
+#forelia-layout .fl-data td {
+  overflow-wrap: anywhere;
+}
+#forelia-layout th {
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: nowrap;
+}

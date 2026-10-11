@@ -48,6 +48,71 @@ O cenário base mostra 9 itens, 4 pares conciliados e taxa de 44,44%. Para testa
 
 Swagger (`/swagger`), documento OpenAPI (`/openapi/v1.json`) e prévia HTML (`/dashboard`) existem somente em `Development`. A prévia é uma ferramenta simples de verificação servida pelo backend, sem React ou processo separado de frontend. As APIs de negócio permanecem disponíveis nos demais ambientes.
 
+## Frontend — React/TypeScript
+
+O frontend está em `frontend/`, no mesmo repositório. Abra a raiz `forelia/` no VS Code para acessar também a documentação e incluir tudo no mesmo commit, mantendo `Forelia.sln` no Rider para a API. Pré-requisito: Node.js 22.12 ou superior da linha 22, ou uma versão LTS posterior compatível com Vite; o ambiente verificado usa Node.js 22.14.0 e npm 10.9.2.
+
+Com a API em execução no Rider, use um segundo terminal:
+
+```sh
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
+
+Abra `http://127.0.0.1:5173`. O servidor Vite encaminha `/api` para `http://localhost:5080`; o backend não precisa de configuração CORS para esse fluxo. Para outra porta da API, copie `frontend/.env.example` para `frontend/.env.local` e ajuste `FORELIA_API_URL`. Reinicie o Vite após alterar essa configuração. A porta 5173 é fixa: se estiver ocupada, encerre o outro processo antes de iniciar.
+
+Verificações do frontend:
+
+```sh
+npm --prefix frontend run build
+npm --prefix frontend run lint
+npm --prefix frontend test
+```
+
+O build gera `frontend/dist/`. Publicação e hospedagem não foram configuradas; em produção, disponibilize os arquivos estáticos e encaminhe `/api` para o backend na mesma origem. `npm run dev` é apenas para desenvolvimento local.
+
+### Organização dos arquivos
+
+`frontend/src/` está organizado por responsabilidade:
+
+```text
+src/
+  App.tsx                   # Seleção da tela pela rota local
+  main.tsx                  # Inicialização do React
+  api/
+    client.ts               # HTTP, importação, exportação e leitura decimal exata
+    types.ts                # Contratos de dados da API
+    client.test.ts
+  components/               # Layout e componentes reutilizados entre telas
+  pages/
+    DashboardPage.tsx
+    HistoryPage.tsx
+    ImportPage.tsx
+    results/
+      ResultsPage.tsx
+      ItemDetails.tsx       # Análise e observações, exclusivas dos resultados
+  hooks/
+    useRemote.ts            # Consulta com cancelamento e estados de carregamento
+  utils/                    # Formatação, filtros e seus testes
+  styles/                   # Estilos globais e da aplicação
+```
+
+Componentes usados em mais de uma tela ficam em `components/`; os exclusivos de uma tela ficam ao lado dela. Testes ficam próximos do código verificado. As configurações de Vite, TypeScript e npm continuam na raiz de `frontend/`. A separação não adiciona camadas de domínio ou bibliotecas.
+
+### Interface e integração
+
+A base visual escolhida em 11/10/2026 usa navegação superior, fundo claro e grafite um pouco mais escuro nos textos. Os números dos indicadores e as barras de ocorrências usam o azul da proposta revisada. A pedido do usuário, a revisão seguinte acrescenta destaque azul às ações principais e à navegação selecionada, cores e ícones nas etiquetas de situação e alertas, além de respostas visuais ao passar o mouse e clicar. A folha da marca foi removida; o protótipo propõe duas setas opostas para representar a comparação entre fontes. As demais telas serão refinadas a partir dessa base.
+
+A interface implementa a base visual aprovada e usa a API real, sem dados simulados na aplicação. O protótipo da conversa permanece uma referência de layout. As rotas locais usam fragmentos (`#visao-geral`, `#nova-conciliacao`, `#historico` e `#resultados/ID`), permitindo recarregar e usar voltar/avançar sem configuração de rotas no servidor.
+
+Em **Nova conciliação**, selecione um CSV de cada fonte. **Validar e importar arquivos** envia cada fonte ao seu endpoint; erros são mostrados por linha, e respostas 409 reutilizam os metadados da importação indicada. Cada arquivo tem sua própria transação: se uma fonte for rejeitada, uma importação válida da outra fonte permanece disponível. **Executar conciliação** usa os IDs recebidos e abre os resultados. Botões ficam indisponíveis durante as gravações, evitando envios repetidos na mesma tela; nenhuma gravação recebe retentativa automática.
+
+O dashboard seleciona a execução concluída mais recente por padrão, permite escolher execuções concluídas recentes e conserva o recorte aprovado. O histórico tem paginação e permite abrir qualquer execução. Tentativas não concluídas exibem a situação, sem resultados parciais.
+
+Nos resultados, preencha os seis filtros e use **Aplicar filtros**. A lista é paginada; a exportação usa os filtros aplicados e inclui todas as páginas. Selecionar um item abre os detalhes, a situação da análise e as observações paginadas. A identidade do analista é informada a cada observação, com aviso de identidade não autenticada; não há edição ou exclusão de observações.
+
+Valores financeiros são lidos com `lossless-json` e mantidos como texto decimal no frontend, para preservar a precisão do `decimal` recebido da API. A exibição usa vírgula e duas casas, sem conversão para `Number`, cálculo ou arredondamento financeiro e sem atribuir uma moeda não definida. Datas de operação são exibidas sem conversão de fuso; instantes UTC usam o fuso local do navegador. Falhas de consulta possuem estados de erro e ações para atualizar; falhas técnicas de gravação não são apresentadas como divergências financeiras.
+
 ## Testes
 
 ```sh
@@ -129,7 +194,7 @@ A paginação começa em 1; tamanho padrão 20 e máximo 100. Arquivo inexistent
 
 O cenário `01_base` produz 9 itens: 4 pares conciliados, 3 pares divergentes e 2 registros sem correspondência, com taxa de 44,44%. Com `02_correcao/contabil_corrigido.csv`, os 8 pares ficam conciliados, com taxa de 100%.
 
-As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação, o dashboard e a exportação no Rider. O frontend React/TypeScript permanece para uma próxima etapa.
+As requisições em `Forelia.Api.http` capturam automaticamente os IDs das importações (incluindo respostas 409) para executar e consultar a conciliação, o dashboard e a exportação no Rider. O frontend React/TypeScript usa os mesmos contratos.
 
 ## Análise de divergências e observações
 
@@ -219,7 +284,7 @@ Os indicadores e a distribuição pertencem **somente à execução selecionada*
 
 No cenário base: 16 registros de origem, 9 itens, 4 pares conciliados, 3 pares divergentes, uma ausência em cada fonte e 5 itens com divergência. A distribuição tem 2 ocorrências de valor, 2 de data e uma de cada ausência: 6 ocorrências, com taxa de 44,44%. A correção apresenta 8 itens conciliados e taxa de 100%, sem somar os 9 itens da execução anterior.
 
-Sem execução concluída, os indicadores e as quatro categorias retornam zero; as contagens de tentativas e o histórico continuam disponíveis. A seleção do dashboard não filtra esses dois campos globais. A API não oferece filtros por período. A prévia em `/dashboard`, somente em Development, distingue os cartões de itens das barras de ocorrências; o frontend definitivo continua previsto.
+Sem execução concluída, os indicadores e as quatro categorias retornam zero; as contagens de tentativas e o histórico continuam disponíveis. A seleção do dashboard não filtra esses dois campos globais. A API não oferece filtros por período. A prévia em `/dashboard`, somente em Development, distingue os cartões de itens das barras de ocorrências; o frontend React/TypeScript utiliza esses mesmos contratos.
 
 ## Exportação CSV — RN16
 
@@ -248,7 +313,9 @@ Registro consolidado dos critérios confirmados nas etapas já implementadas. As
 
 | Tema | Decisão adotada |
 |---|---|
-| Base técnica | Backend C#/.NET 10, PostgreSQL e EF Core; manter implementação simples, seguindo a estrutura existente. React/TypeScript está previsto para o frontend. |
+| Base técnica | Backend C#/.NET 10, PostgreSQL e EF Core; manter implementação simples, seguindo a estrutura existente. Frontend React/TypeScript com Vite em `frontend/`. |
+| Organização e execução do frontend | Aprovado em 11/10/2026: `frontend/` no mesmo repositório, aberto no VS Code; API e solução .NET no Rider. React/TypeScript com Vite e npm, CSS próprio e ícones Lucide. Navegação por fragmentos e proxy local `/api`, sem alteração dos contratos do backend. `lossless-json` preserva os tokens decimais financeiros como texto; nenhuma tolerância, moeda ou cálculo financeiro é introduzido no frontend. |
+| Layout do frontend | Escolhido em 11/10/2026: navegação superior, fundo claro, grafite mais escuro nos textos e azul nas métricas. Revisão solicitada: botões, alertas e etiquetas com mais destaque visual e remoção da folha da marca. O protótipo propõe ações principais azuis, estados com cor e ícone e marca com duas setas opostas. Layout aprovado para implementação; o protótipo usa dados fictícios e o frontend React/TypeScript consome a API real. |
 | Documentação | README resumido; execução, testes, API e este registro ficam neste guia. Não criar documentos adicionais de planejamento sem solicitação. |
 | Layout CSV — RN03 | `csv-v1`: UTF-8, BOM opcional, separador `;`, cabeçalho obrigatório `id_operacao;data_operacao;valor`. Datas `yyyy-MM-dd`, decimal com ponto, sem milhar/notação científica e até duas casas. |
 | Normalização — RN03 | Remover espaços externos, ignorar linhas em branco e preservar identificadores como texto, incluindo zeros, maiúsculas/minúsculas e espaços internos. |
@@ -267,9 +334,9 @@ Registro consolidado dos critérios confirmados nas etapas já implementadas. As
 | Recorte do dashboard — RN15 | Autorizado pelo usuário em 11/10/2026 para implementação e revisão posterior. Indicadores e distribuição de uma única execução concluída, selecionada por ID ou pela criação mais recente, com desempate por ID crescente. Não somar operações entre execuções. |
 | Histórico do dashboard — RN15 | Contagens globais de tentativas por situação e dez tentativas mais recentes, incluindo falhas. Reutilização não aumenta a contagem. Selecionar outra conciliação não filtra esses campos. |
 | Distribuição do dashboard — RN14/RN15 | Contar ocorrências de valor, data e ausências separadamente. Total de itens com divergência inclui ausências e conta cada item uma vez; uma divergência dupla produz duas ocorrências. Preservar indicadores ao alterar a análise. |
-| Limites do dashboard — RN15 | Sem resultado concluído: seleção nula e indicadores zerados. ID inexistente 404, malformado 400 e não concluído 409. API e testes na primeira etapa; prévia visual local adicionada na etapa seguinte. Frontend definitivo e filtros por período continuam futuros. |
+| Limites do dashboard — RN15 | Sem resultado concluído: seleção nula e indicadores zerados. ID inexistente 404, malformado 400 e não concluído 409. API e testes na primeira etapa; prévia visual local adicionada na etapa seguinte. Frontend React/TypeScript implementado na etapa seguinte; filtros por período do dashboard continuam futuros. |
 | Exportação — RN16 | Aprovado em 11/10/2026: uma execução concluída, mesmos seis filtros, todos os itens filtrados sem paginação e mesma ordenação. UTF-8 com BOM, `;`, CRLF, datas `yyyy-MM-dd`, valores com duas casas e campos ausentes vazios. Oito colunas definidas no contrato; múltiplas divergências `VALOR|DATA`, análise atual, sem observações. Sem itens: somente cabeçalho; erros 400/404/409. |
-| Testes interativos e prévia visual | Solicitação de 11/10/2026: Swagger UI com OpenAPI gerado pelo ASP.NET Core e prévia HTML simples em `/dashboard`, servidos somente em Development. Prévia reutiliza a API e os critérios aprovados do dashboard, com indicadores e barras de ocorrências; frontend React e filtros por período continuam futuros. |
+| Testes interativos e prévia visual | Solicitação de 11/10/2026: Swagger UI com OpenAPI gerado pelo ASP.NET Core e prévia HTML simples em `/dashboard`, servidos somente em Development. Prévia reutiliza a API e os critérios aprovados do dashboard, com indicadores e barras de ocorrências; frontend React implementado em processo separado; filtros por período do dashboard continuam futuros. |
 
 Ao aprovar novos critérios, atualizar este registro e a seção do contrato afetado. As decisões podem ser revistas com o usuário a partir deste registro. Detalhes ainda em aberto dos filtros por período do dashboard e de outras etapas devem ser apresentados ao usuário antes de implementação.
 

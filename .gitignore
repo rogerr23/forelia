@@ -1,22 +1,42 @@
-# Documentação de referência local; guia de desenvolvimento versionado
-/docs/*
-!/docs/DESENVOLVIMENTO.md
-
-# Arquivos locais do sistema e do editor
+# Sistema operacional e configurações pessoais dos editores
 .DS_Store
-/.idea/
-
-# .NET
-**/bin/
-**/obj/
+.idea/
 *.user
 *.suo
-.env
+*.DotSettings.user
+/frontend/.vscode/*
+!/frontend/.vscode/extensions.json
 
+# Backend — arquivos gerados pelo .NET
+**/bin/
+**/obj/
+
+# Testes — resultados e cobertura
 **/TestResults/
 *.trx
 *.coverage
 *.coveragexml
-*.DotSettings.user
+
+# Frontend — dependências, builds e cache do TypeScript
+**/node_modules/
+/frontend/dist/
+/frontend/dist-ssr/
+*.tsbuildinfo
+
+# Frontend — logs locais
+/frontend/logs/
+/frontend/**/*.log
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+/frontend/lerna-debug.log*
+
+# Ambiente local — manter os modelos de configuração versionáveis
+.env
 .env.*
 !.env.example
+
+# Documentação de referência local — guia de desenvolvimento versionado
+/docs/*
+!/docs/DESENVOLVIMENTO.md
