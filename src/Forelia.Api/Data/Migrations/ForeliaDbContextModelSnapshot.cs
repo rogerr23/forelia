@@ -131,6 +131,126 @@ namespace Forelia.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Forelia.Api.Data.Reconciliation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountingFileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DivergentPairs")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ErrorCode")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MatchedPairs")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MissingAccounting")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MissingOperational")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("OperationalFileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ReconciliationRate")
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<string>("RulesVersion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SourceRecords")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountingFileId");
+
+                    b.HasIndex("OperationalFileId", "AccountingFileId", "RulesVersion")
+                        .IsUnique()
+                        .HasDatabaseName("ux_conciliacao_concluida")
+                        .HasFilter("\"Status\" = 'CONCLUIDA'");
+
+                    b.ToTable("conciliacao", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_conciliacao_arquivos", "\"OperationalFileId\" <> \"AccountingFileId\"");
+
+                            t.HasCheckConstraint("ck_conciliacao_status", "\"Status\" IN ('PENDENTE', 'PROCESSANDO', 'CONCLUIDA', 'FALHOU')");
+                        });
+                });
+
+            modelBuilder.Entity("Forelia.Api.Data.ReconciliationItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("AccountingAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateOnly?>("AccountingDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("AccountingRecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("DateDivergence")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("OperationalAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateOnly?>("OperationalDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("OperationalRecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ReconciliationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("ValueDivergence")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountingRecordId");
+
+                    b.HasIndex("OperationalRecordId");
+
+                    b.HasIndex("ReconciliationId", "ExternalId")
+                        .IsUnique();
+
+                    b.ToTable("item_conciliacao", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_item_resultado", "\"Result\" IN ('CONCILIADO', 'DIVERGENTE', 'SEM_REGISTRO_CONTABIL', 'SEM_OPERACAO_FINANCEIRA')");
+                        });
+                });
+
             modelBuilder.Entity("Forelia.Api.Data.FinancialRecord", b =>
                 {
                     b.HasOne("Forelia.Api.Data.ImportedFile", null)
@@ -140,9 +260,48 @@ namespace Forelia.Api.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Forelia.Api.Data.Reconciliation", b =>
+                {
+                    b.HasOne("Forelia.Api.Data.ImportedFile", null)
+                        .WithMany()
+                        .HasForeignKey("AccountingFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Forelia.Api.Data.ImportedFile", null)
+                        .WithMany()
+                        .HasForeignKey("OperationalFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Forelia.Api.Data.ReconciliationItem", b =>
+                {
+                    b.HasOne("Forelia.Api.Data.FinancialRecord", null)
+                        .WithMany()
+                        .HasForeignKey("AccountingRecordId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Forelia.Api.Data.FinancialRecord", null)
+                        .WithMany()
+                        .HasForeignKey("OperationalRecordId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Forelia.Api.Data.Reconciliation", null)
+                        .WithMany("Items")
+                        .HasForeignKey("ReconciliationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Forelia.Api.Data.ImportedFile", b =>
                 {
                     b.Navigation("Records");
+                });
+
+            modelBuilder.Entity("Forelia.Api.Data.Reconciliation", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

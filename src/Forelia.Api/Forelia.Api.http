@@ -19,6 +19,12 @@ Content-Type: text/csv
 < ../../examples/csv/01_base/operacional.csv
 --forelia-boundary--
 
+> {%
+    if (response.status === 201 || response.status === 409) {
+        client.global.set("arquivoOperacionalId", response.body.id || response.body.importacaoExistenteId);
+    }
+%}
+
 ### Importação contábil válida
 POST {{host}}/api/importacoes/contabil
 Content-Type: multipart/form-data; boundary=forelia-boundary
@@ -30,6 +36,12 @@ Content-Type: text/csv
 < ../../examples/csv/01_base/contabil.csv
 --forelia-boundary--
 
+> {%
+    if (response.status === 201 || response.status === 409) {
+        client.global.set("arquivoContabilId", response.body.id || response.body.importacaoExistenteId);
+    }
+%}
+
 ### Campos inválidos: retorna 422 com os erros, sem persistir registros
 POST {{host}}/api/importacoes/operacional
 Content-Type: multipart/form-data; boundary=forelia-boundary
@@ -40,3 +52,69 @@ Content-Type: text/csv
 
 < ../../examples/csv/06_invalidos/operacional_campos_invalidos.csv
 --forelia-boundary--
+
+### Conciliar os arquivos importados acima (201 nova execução, 200 resultado existente)
+POST {{host}}/api/conciliacoes
+Content-Type: application/json
+
+{
+  "arquivoOperacionalId": "{{arquivoOperacionalId}}",
+  "arquivoContabilId": "{{arquivoContabilId}}"
+}
+
+> {%
+    if (response.status === 201 || response.status === 200) {
+        client.global.set("conciliacaoId", response.body.id);
+        client.test("Cenário base: 4 conciliados, 3 divergentes e 2 sem correspondência", function () {
+            client.assert(response.body.status === "CONCLUIDA");
+            client.assert(response.body.paresConciliados === 4);
+            client.assert(response.body.paresDivergentes === 3);
+            client.assert(response.body.totalItens === 9);
+        });
+    }
+%}
+
+### Resumo da conciliação base
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}
+
+### Itens da conciliação base, incluindo divergências de valor e data
+GET {{host}}/api/conciliacoes/{{conciliacaoId}}/itens?pagina=1&tamanhoPagina=20
+
+### Histórico de execuções
+GET {{host}}/api/conciliacoes?pagina=1&tamanhoPagina=20
+
+### Importar arquivo contábil corrigido
+POST {{host}}/api/importacoes/contabil
+Content-Type: multipart/form-data; boundary=forelia-boundary
+
+--forelia-boundary
+Content-Disposition: form-data; name="arquivo"; filename="contabil_corrigido.csv"
+Content-Type: text/csv
+
+< ../../examples/csv/02_correcao/contabil_corrigido.csv
+--forelia-boundary--
+
+> {%
+    if (response.status === 201 || response.status === 409) {
+        client.global.set("arquivoContabilCorrigidoId", response.body.id || response.body.importacaoExistenteId);
+    }
+%}
+
+### Conciliar correção sem sobrescrever a execução base
+POST {{host}}/api/conciliacoes
+Content-Type: application/json
+
+{
+  "arquivoOperacionalId": "{{arquivoOperacionalId}}",
+  "arquivoContabilId": "{{arquivoContabilCorrigidoId}}"
+}
+
+> {%
+    if (response.status === 201 || response.status === 200) {
+        client.test("Correção: 8 pares conciliados e taxa de 100%", function () {
+            client.assert(response.body.paresConciliados === 8);
+            client.assert(response.body.taxaConciliacao === 100);
+            client.assert(response.body.id !== client.global.get("conciliacaoId"));
+        });
+    }
+%}

@@ -1,6 +1,7 @@
 using Forelia.Api.Data;
 using Forelia.Api.Health;
 using Forelia.Api.Imports;
+using Forelia.Api.Reconciliations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http.Features;
@@ -22,6 +23,7 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 });
 builder.Services.AddSingleton<CsvValidator>();
 builder.Services.AddScoped<ImportService>();
+builder.Services.AddScoped<ReconciliationService>();
 
 var app = builder.Build();
 app.UseExceptionHandler();
@@ -32,6 +34,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     Predicate = check => check.Tags.Contains("ready")
 });
 app.MapImportEndpoints();
+app.MapReconciliationEndpoints();
 app.Run();
 
 public partial class Program;

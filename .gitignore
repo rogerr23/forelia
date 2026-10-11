@@ -1,5 +1,6 @@
-# Documentação local
-/docs/
+# Documentação de referência local; guia de desenvolvimento versionado
+/docs/*
+!/docs/DESENVOLVIMENTO.md
 
 # Arquivos locais do sistema e do editor
 .DS_Store

@@ -7,6 +7,8 @@ public sealed class ForeliaDbContext(DbContextOptions<ForeliaDbContext> options)
 {
     public DbSet<ImportedFile> ImportedFiles => Set<ImportedFile>();
     public DbSet<FinancialRecord> FinancialRecords => Set<FinancialRecord>();
+    public DbSet<Reconciliation> Reconciliations => Set<Reconciliation>();
+    public DbSet<ReconciliationItem> ReconciliationItems => Set<ReconciliationItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,5 +49,35 @@ public sealed class ForeliaDbContext(DbContextOptions<ForeliaDbContext> options)
         record.Property(x => x.Amount).HasColumnName("valor").HasColumnType("numeric");
         record.HasIndex(x => new { x.FileId, x.LineNumber }).IsUnique();
         file.HasMany(x => x.Records).WithOne().HasForeignKey(x => x.FileId).OnDelete(DeleteBehavior.Restrict);
+
+        var execution = modelBuilder.Entity<Reconciliation>();
+        execution.ToTable("conciliacao", table =>
+        {
+            table.HasCheckConstraint("ck_conciliacao_status", "\"Status\" IN ('PENDENTE', 'PROCESSANDO', 'CONCLUIDA', 'FALHOU')");
+            table.HasCheckConstraint("ck_conciliacao_arquivos", "\"OperationalFileId\" <> \"AccountingFileId\"");
+        });
+        execution.HasKey(x => x.Id);
+        execution.Property(x => x.RulesVersion).IsRequired();
+        execution.Property(x => x.Status).IsRequired();
+        execution.Property(x => x.ReconciliationRate).HasColumnType("numeric(5,2)");
+        execution.HasOne<ImportedFile>().WithMany().HasForeignKey(x => x.OperationalFileId).OnDelete(DeleteBehavior.Restrict);
+        execution.HasOne<ImportedFile>().WithMany().HasForeignKey(x => x.AccountingFileId).OnDelete(DeleteBehavior.Restrict);
+        execution.HasIndex(x => new { x.OperationalFileId, x.AccountingFileId, x.RulesVersion })
+            .IsUnique().HasFilter("\"Status\" = 'CONCLUIDA'").HasDatabaseName("ux_conciliacao_concluida");
+
+        var item = modelBuilder.Entity<ReconciliationItem>();
+        item.ToTable("item_conciliacao", table =>
+        {
+            table.HasCheckConstraint("ck_item_resultado", "\"Result\" IN ('CONCILIADO', 'DIVERGENTE', 'SEM_REGISTRO_CONTABIL', 'SEM_OPERACAO_FINANCEIRA')");
+        });
+        item.HasKey(x => x.Id);
+        item.Property(x => x.ExternalId).IsRequired();
+        item.Property(x => x.Result).IsRequired();
+        item.Property(x => x.OperationalAmount).HasColumnType("numeric");
+        item.Property(x => x.AccountingAmount).HasColumnType("numeric");
+        item.HasOne<FinancialRecord>().WithMany().HasForeignKey(x => x.OperationalRecordId).OnDelete(DeleteBehavior.Restrict);
+        item.HasOne<FinancialRecord>().WithMany().HasForeignKey(x => x.AccountingRecordId).OnDelete(DeleteBehavior.Restrict);
+        execution.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.ReconciliationId).OnDelete(DeleteBehavior.Restrict);
+        item.HasIndex(x => new { x.ReconciliationId, x.ExternalId }).IsUnique();
     }
 }
