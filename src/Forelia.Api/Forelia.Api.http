@@ -1,0 +1,42 @@
+@host = http://localhost:5080
+
+GET {{host}}/
+
+### API em execução
+GET {{host}}/health/live
+
+### Conexão com PostgreSQL
+GET {{host}}/health/ready
+
+### Importação operacional válida (201 na primeira chamada, 409 na repetição)
+POST {{host}}/api/importacoes/operacional
+Content-Type: multipart/form-data; boundary=forelia-boundary
+
+--forelia-boundary
+Content-Disposition: form-data; name="arquivo"; filename="operacional.csv"
+Content-Type: text/csv
+
+< ../../examples/csv/01_base/operacional.csv
+--forelia-boundary--
+
+### Importação contábil válida
+POST {{host}}/api/importacoes/contabil
+Content-Type: multipart/form-data; boundary=forelia-boundary
+
+--forelia-boundary
+Content-Disposition: form-data; name="arquivo"; filename="contabil.csv"
+Content-Type: text/csv
+
+< ../../examples/csv/01_base/contabil.csv
+--forelia-boundary--
+
+### Campos inválidos: retorna 422 com os erros, sem persistir registros
+POST {{host}}/api/importacoes/operacional
+Content-Type: multipart/form-data; boundary=forelia-boundary
+
+--forelia-boundary
+Content-Disposition: form-data; name="arquivo"; filename="operacional_campos_invalidos.csv"
+Content-Type: text/csv
+
+< ../../examples/csv/06_invalidos/operacional_campos_invalidos.csv
+--forelia-boundary--

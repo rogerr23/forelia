@@ -4,3 +4,18 @@
 # Arquivos locais do sistema e do editor
 .DS_Store
 /.idea/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+.env
+
+**/TestResults/
+*.trx
+*.coverage
+*.coveragexml
+*.DotSettings.user
+.env.*
+!.env.example
